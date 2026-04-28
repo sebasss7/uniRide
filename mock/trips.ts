@@ -1,0 +1,40 @@
+import { Viaje } from '@/types';
+
+export const tripsMock: Viaje[] = [
+    {
+        id: '1',
+        conductor_id: '1',
+        vehiculo_id: '1',
+        estado_viaje: 'disponible',
+        origen: 'Facultad de Informática',
+        destino: 'Facultad de Contaduría',
+        fecha: '2026-04-27',
+        hora_salida: '12:00',
+        asientos_disponibles: 3,
+        precio: 30,
+    },
+    {
+        id: '2',
+        conductor_id: '2',
+        vehiculo_id: '2',
+        estado_viaje: 'disponible',
+        origen: 'Rectoría UAQ',
+        destino: 'Facultad de Ingeniería',
+        fecha: '2026-04-27',
+        hora_salida: '13:30',
+        asientos_disponibles: 2,
+        precio: 25,
+    },
+    {
+        id: '3',
+        conductor_id: '1',
+        vehiculo_id: '1',
+        estado_viaje: 'disponible',
+        origen: 'Facultad de Medicina',
+        destino: 'Facultad de Derecho',
+        fecha: '2026-04-28',
+        hora_salida: '08:00',
+        asientos_disponibles: 1,
+        precio: 20,
+    },
+];
