@@ -1,5 +1,9 @@
+import AddVehicleModal from '@/components/profile/AddVehicleModal';
 import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
+import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
+import { Vehiculo } from '@/types';
+import { Pencil, PlusCircle } from 'lucide-react-native';
 import { useState } from 'react';
 import {
     Image,
@@ -15,6 +19,13 @@ export default function PerfilScreen() {
     const { usuario, login } = useAuthStore();
     const [modalEditarVisible, setModalEditarVisible] = useState(false);
 
+    const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
+    const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
+
+    const [vehiculos, setVehiculos] = useState<Vehiculo[]>(
+        vehiclesMock.filter((v) => v.usuario_id === usuario?.id)
+    );
+
     if (!usuario) return null;
 
     const calcularEdad = (nacimiento: string): number => {
@@ -29,6 +40,28 @@ export default function PerfilScreen() {
 
     const handleGuardarPerfil = (datos: Partial<typeof usuario>) => {
         login({ ...usuario, ...datos });
+    };
+
+    const handleAbrirVehiculo = (vehiculo?: Vehiculo) => {
+        setVehiculoEditando(vehiculo ?? null);
+        setModalVehiculoVisible(true);
+    };
+
+    const handleGuardarVehiculo = (datos: Omit<Vehiculo, 'id' | 'usuario_id'>) => {
+        if (vehiculoEditando) {
+            // Editar
+            setVehiculos((prev) =>
+                prev.map((v) => (v.id === vehiculoEditando.id ? { ...v, ...datos } : v))
+            );
+        } else {
+            // Nuevo
+            const nuevo: Vehiculo = {
+                id: String(Date.now()),
+                usuario_id: usuario.id,
+                ...datos,
+            };
+            setVehiculos((prev) => [...prev, nuevo]);
+        }
     };
 
     const edad = calcularEdad(usuario.nacimiento);
@@ -93,6 +126,37 @@ export default function PerfilScreen() {
 
                 <View style={styles.divider} />
 
+                <View style={styles.section}>
+                    <TouchableOpacity
+                        style={styles.vehiculosHeader}
+                        onPress={() => handleAbrirVehiculo()}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.sectionTitle}>Vehículos</Text>
+                        <PlusCircle style={styles.addIcon} size={20} color="#1a3a5c" />
+                    </TouchableOpacity>
+
+                    {vehiculos.length === 0 ? (
+                        <Text style={styles.sinVehiculos}>No tienes vehículos registrados</Text>
+                    ) : (
+                        vehiculos.map((v) => (
+                            <View key={v.id} style={styles.vehiculoCard}>
+                                <View style={styles.vehiculoInfo}>
+                                    <Text style={styles.vehiculoMarca}>{v.marca}</Text>
+                                    <Text style={styles.vehiculoModelo}>{v.modelo}</Text>
+                                    <Text style={styles.vehiculoPlacas}>{v.placas}</Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => handleAbrirVehiculo(v)}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                    <Pencil size={16} color="#1a3a5c" />
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
+                </View>
+
                 <View style={{ height: 32 }} />
             </ScrollView>
             <UpdateProfileModal
@@ -100,6 +164,13 @@ export default function PerfilScreen() {
                 usuario={usuario}
                 onClose={() => setModalEditarVisible(false)}
                 onGuardar={handleGuardarPerfil}
+            />
+
+            <AddVehicleModal
+                visible={modalVehiculoVisible}
+                vehiculo={vehiculoEditando}
+                onClose={() => setModalVehiculoVisible(false)}
+                onGuardar={handleGuardarVehiculo}
             />
         </SafeAreaView>
     );
@@ -219,5 +290,51 @@ const styles = StyleSheet.create({
         color: '#3a5a72',
         marginBottom: 6,
         lineHeight: 22,
+    },
+    vehiculosHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    addIcon: {
+        fontSize: 24,
+        color: '#1a3a5c',
+        fontWeight: '700',
+        marginBottom: 12,
+    },
+    sinVehiculos: {
+        fontSize: 14,
+        color: '#a0b4c8',
+        fontStyle: 'italic',
+    },
+    vehiculoCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#eaf2fb',
+        borderRadius: 14,
+        padding: 14,
+        marginBottom: 10,
+    },
+    vehiculoInfo: {
+        gap: 2,
+    },
+    vehiculoMarca: {
+        fontSize: 13,
+        color: '#4a6a82',
+        fontStyle: 'italic',
+    },
+    vehiculoModelo: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#1a3a5c',
+    },
+    vehiculoPlacas: {
+        fontSize: 13,
+        color: '#4a6a82',
+        fontStyle: 'italic',
+    },
+    editIcon: {
+        fontSize: 18,
     },
 });
