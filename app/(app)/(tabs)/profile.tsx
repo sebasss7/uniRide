@@ -1,15 +1,19 @@
+import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
 import { useAuthStore } from '@/store/authStore';
+import { useState } from 'react';
 import {
     Image,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
-    View
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export default function PerfilScreen() {
     const { usuario, login } = useAuthStore();
+    const [modalEditarVisible, setModalEditarVisible] = useState(false);
 
     if (!usuario) return null;
 
@@ -55,6 +59,15 @@ export default function PerfilScreen() {
                             <Text style={styles.verificadoIcon}>🛡️</Text>
                         </View>
                     </View>
+
+                    <View style={styles.headerContent}>
+                        <TouchableOpacity
+                            style={styles.btnEditar}
+                            onPress={() => setModalEditarVisible(true)}
+                        >
+                            <Text style={styles.btnEditarText}>Editar información</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View style={styles.section}>
@@ -82,6 +95,12 @@ export default function PerfilScreen() {
 
                 <View style={{ height: 32 }} />
             </ScrollView>
+            <UpdateProfileModal
+                visible={modalEditarVisible}
+                usuario={usuario}
+                onClose={() => setModalEditarVisible(false)}
+                onGuardar={handleGuardarPerfil}
+            />
         </SafeAreaView>
     );
 }
@@ -94,7 +113,12 @@ const styles = StyleSheet.create({
     headerContainer: {
         height: 200,
         position: 'relative',
+    },
+    headerContent: {
+        flex: 1,
         justifyContent: 'flex-end',
+        paddingHorizontal: 20,
+        paddingBottom: 16,
     },
     bgImage: {
         ...StyleSheet.absoluteFillObject,
