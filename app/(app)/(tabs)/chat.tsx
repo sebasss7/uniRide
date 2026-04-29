@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function MyTrips() {
+export default function ChatScreen() {
     return (
         <View>
-            <Text>Trips</Text>
+            <Text>Chat</Text>
         </View>
     );
 }
