@@ -1,7 +1,14 @@
-import { Stack } from 'expo-router';
+import PermissionsCheckerProvider from "@/providers/PermissionsCheckerProvider";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <PermissionsCheckerProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      ></Stack>
+    </PermissionsCheckerProvider>
   );
 }
