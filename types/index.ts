@@ -64,4 +64,5 @@ export interface Mensaje {
 export interface Chat {
     id: string;
     participantes: string[];
+    viaje_id?: string; //Cada chat pertenece a un viaje en específico
 }
