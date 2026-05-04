@@ -1,12 +1,12 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface Props {
@@ -98,49 +98,90 @@ const styles = StyleSheet.create({
     right: 0,
     pointerEvents: "box-none",
   },
+
   container: {
     backgroundColor: "#fff",
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 24,
+    paddingBottom: 40,
     height: "55%",
     pointerEvents: "auto",
   },
+
   collapsed: {
-    height: 100,
+    height: 110,
+    paddingBottom: 20,
   },
+
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "#d0e4f0",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 12,
+  },
+
   toggle: {
     textAlign: "center",
     marginBottom: 10,
     color: "#1a3a5c",
     fontWeight: "600",
   },
+
   title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: "800",
     color: "#1a3a5c",
+    marginBottom: 20,
   },
+
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1a3a5c",
+    marginBottom: 6,
+    marginTop: 8,
+  },
+
   input: {
-    backgroundColor: "#f1f1f1",
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: "#dceef9",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#1a3a5c",
     marginBottom: 10,
   },
+
+  row: {
+    flexDirection: "row",
+    gap: 12,
+  },
+
+  rowItem: {
+    flex: 1,
+  },
+
   btn: {
     backgroundColor: "#1a3a5c",
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 30,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 20,
   },
+
   btnText: {
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 15,
   },
+
   close: {
     textAlign: "center",
-    marginTop: 10,
-    color: "red",
+    marginTop: 12,
+    color: "#1a3a5c",
+    fontWeight: "600",
   },
 });
