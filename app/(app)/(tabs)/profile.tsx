@@ -1,7 +1,7 @@
 import AddVehicleModal from '@/components/profile/AddVehicleModal';
 import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
-import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
+import { useVehiculoStore } from '@/store/vehiclesStore';
 import { Vehiculo } from '@/types';
 import { Pencil, PlusCircle } from 'lucide-react-native';
 import { useState } from 'react';
@@ -22,9 +22,8 @@ export default function PerfilScreen() {
     const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
 
-    const [vehiculos, setVehiculos] = useState<Vehiculo[]>(
-        vehiclesMock.filter((v) => v.usuario_id === usuario?.id)
-    );
+    const { getVehiculosDeUsuario, agregarVehiculo, editarVehiculo } = useVehiculoStore();
+    const vehiculos = getVehiculosDeUsuario(usuario?.id ?? "");
 
     if (!usuario) return null;
 
@@ -49,18 +48,9 @@ export default function PerfilScreen() {
 
     const handleGuardarVehiculo = (datos: Omit<Vehiculo, 'id' | 'usuario_id'>) => {
         if (vehiculoEditando) {
-            // Editar
-            setVehiculos((prev) =>
-                prev.map((v) => (v.id === vehiculoEditando.id ? { ...v, ...datos } : v))
-            );
+            editarVehiculo(vehiculoEditando.id, datos);
         } else {
-            // Nuevo
-            const nuevo: Vehiculo = {
-                id: String(Date.now()),
-                usuario_id: usuario.id,
-                ...datos,
-            };
-            setVehiculos((prev) => [...prev, nuevo]);
+            agregarVehiculo({ ...datos, usuario_id: usuario?.id ?? "" });
         }
     };
 

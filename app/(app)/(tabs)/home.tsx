@@ -3,7 +3,9 @@ import PostTripModal from "@/components/trips/postTripModal";
 import TripCard from "@/components/trips/tripCard";
 import { tripsMock } from "@/mock/trips";
 import { usersMock } from "@/mock/users";
+import { useAuthStore } from "@/store/authStore";
 import { useTripStore } from "@/store/tripStore";
+import { useVehiculoStore } from "@/store/vehiclesStore";
 import { Viaje } from "@/types";
 import { router } from "expo-router";
 import {
@@ -25,8 +27,14 @@ import {
 } from "react-native";
 
 export default function homeScreen() {
+  const usuario = useAuthStore((state) => state.usuario);
+
+  const { getVehiculosDeUsuario } = useVehiculoStore();
+  const tieneVehiculos = getVehiculosDeUsuario(usuario?.id ?? "").length > 0;
+
   const [viajes, setViajes] = useState<Viaje[]>(tripsMock);
   const [modalVisible, setModalVisible] = useState(false);
+
   const { origen, destino } = useTripStore();
 
   // date picker
@@ -115,13 +123,16 @@ export default function homeScreen() {
             <View style={styles.searchSection}>
               <View style={styles.searchHeader}>
                 <Text style={styles.searchTitle}>Buscar</Text>
-                <TouchableOpacity
-                  style={styles.btnPublicar}
-                  onPress={() => setModalVisible(true)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.btnPublicarText}>Publicar viaje +</Text>
-                </TouchableOpacity>
+
+                {tieneVehiculos && (
+                  <TouchableOpacity
+                    style={styles.btnPublicar}
+                    onPress={() => setModalVisible(true)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.btnPublicarText}>Publicar viaje +</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <Pressable onPress={() => router.push("/map")}>
