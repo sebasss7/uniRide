@@ -50,3 +50,18 @@ export interface Reseña {
     comentario: string;
     fecha: string;
 }
+
+export interface Mensaje {
+    id: string;
+    chat_id: string;
+    id_emisor: string;
+    contenido: string;
+    fecha: string;
+    hora: string;
+    leido: boolean;
+}
+
+export interface Chat {
+    id: string;
+    participantes: string[];
+}
