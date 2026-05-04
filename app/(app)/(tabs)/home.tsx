@@ -1,3 +1,4 @@
+import DatePickerModal from "@/components/trips/datePickerModal";
 import PostTripModal from "@/components/trips/postTripModal";
 import TripCard from "@/components/trips/tripCard";
 import { tripsMock } from "@/mock/trips";
@@ -27,6 +28,21 @@ export default function homeScreen() {
   const [viajes, setViajes] = useState<Viaje[]>(tripsMock);
   const [modalVisible, setModalVisible] = useState(false);
   const { origen, destino } = useTripStore();
+
+  // date picker
+  const [fecha, setFecha] = useState<Date | null>(null);
+  const [hora, setHora] = useState<Date | null>(null);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const formatFecha = (date: Date) => {
+    return date.toISOString().split("T")[0]; // yyyy-mm-dd
+  };
+
+  const formatHora = (date: Date) => {
+    return date.toTimeString().slice(0, 5); // HH:mm
+  };
 
   const [filtrOrigen, setFiltroOrigen] = useState("");
   const [filtroDestino, setFiltroDestino] = useState("");
@@ -134,26 +150,34 @@ export default function homeScreen() {
               </View>
 
               <View style={styles.row}>
-                <View style={[styles.inputWrapper, styles.rowItem]}>
+                <Pressable
+                  style={[styles.inputWrapper, styles.rowItem]}
+                  onPress={() => setShowDatePicker(true)}
+                >
                   <Calendar1 size={16} color="#1a3a5c" />
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="Fecha"
-                    placeholderTextColor="#7a9bb5"
-                    value={filtroFecha}
-                    onChangeText={setFiltroFecha}
-                  />
-                </View>
-                <View style={[styles.inputWrapper, styles.rowItem]}>
+                  <Text
+                    style={[
+                      styles.searchInput,
+                      !fecha && { color: "#7a9bb5" }
+                    ]}
+                  >
+                    {fecha ? formatFecha(fecha) : "Fecha"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.inputWrapper, styles.rowItem]}
+                  onPress={() => setShowTimePicker(true)}
+                >
                   <AlarmClock size={16} color="#1a3a5c" />
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="Hora"
-                    placeholderTextColor="#7a9bb5"
-                    value={filtroHora}
-                    onChangeText={setFiltroHora}
-                  />
-                </View>
+                  <Text
+                    style={[
+                      styles.searchInput,
+                      !hora && { color: "#7a9bb5" }
+                    ]}
+                  >
+                    {hora ? formatHora(hora) : "Hora"}
+                  </Text>
+                </Pressable>
               </View>
 
               <View style={styles.row}>
@@ -201,6 +225,39 @@ export default function homeScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onPublicar={handlePublicar}
+      />
+
+      <DatePickerModal
+        visible={showDatePicker}
+        mode="date"
+        value={fecha || new Date()}
+        onChange={(selectedDate) => {
+          setFecha(selectedDate);
+          setFiltroFecha(formatFecha(selectedDate));
+        }}
+        onClose={() => setShowDatePicker(false)}
+      />
+
+      <DatePickerModal
+        visible={showTimePicker}
+        mode="time"
+        value={hora || new Date()}
+        onChange={(selectedDate) => {
+          const now = new Date();
+
+          if (fecha) {
+            const mismaFecha =
+              fecha.toDateString() === now.toDateString();
+
+            if (mismaFecha && selectedDate < now) {
+              return;
+            }
+          }
+
+          setHora(selectedDate);
+          setFiltroHora(formatHora(selectedDate));
+        }}
+        onClose={() => setShowTimePicker(false)}
       />
     </SafeAreaView>
   );
