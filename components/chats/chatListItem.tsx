@@ -4,8 +4,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //Definir los datos que necesita la tarjeta
 interface Props {
     chat: Chat;
-    otroUsuario: Usuario; //Con quién se tiene la conversación
-    ultimoMensaje: Mensaje;
+    otroUsuario: Usuario;
+    ultimoMensaje?: Mensaje;
     onPress: () => void;
 }
 
@@ -13,9 +13,7 @@ export default function ChatListItem({ chat, otroUsuario, ultimoMensaje, onPress
     return (
         <TouchableOpacity style={styles.chatContainer} onPress={onPress} activeOpacity={0.85}>
 
-            {/* Contenedor de la imagen */}
             <View>
-                {/* Aquí va la lógica de la imagen (puedes copiar la validación de avatar de tripCard) */}
                 {otroUsuario.imagen_usuario ? (
                     <Image source={{ uri: otroUsuario.imagen_usuario }} style={styles.avatar} />
                 ) : (
@@ -27,16 +25,15 @@ export default function ChatListItem({ chat, otroUsuario, ultimoMensaje, onPress
                 )}
             </View>
 
-            {/* Contenedor de texto para Nombre y extracto del mensaje */}
             <View style={styles.textContainer}>
                 <Text style={styles.nombreText}>{otroUsuario.nombre}</Text>
                 <Text style={styles.mensajeText} numberOfLines={1}>
-                    {ultimoMensaje.contenido}
+                    {/* Si existe un mensaje, poner el contenido. Si no, poner algo por defecto */}
+                    {ultimoMensaje ? ultimoMensaje.contenido : 'Aún no hay mensajes!'}
                 </Text>
             </View>
 
-            {/* Contenedor con punto azul que se muestra sólo si NO se ha leído */}
-            {!ultimoMensaje.leido && (
+            {ultimoMensaje && !ultimoMensaje.leido && (
                 <View style={styles.unreadDot} />
             )}
 
@@ -46,24 +43,19 @@ export default function ChatListItem({ chat, otroUsuario, ultimoMensaje, onPress
 
 const styles = StyleSheet.create({
     chatContainer: {
-        // Tu misión: usar Flexbox aquí. Necesitas que la imagen, los textos y el punto estén en FILA.
-        // Investiga flexDirection, alignItems y padding.
         flexDirection: 'row',
         alignItems: 'center',
         padding: 20,
         gap: 12
     },
     textContainer: {
-        // Este contenedor ocupa el espacio sobrante. Investiga la propiedad "flex: 1".
         flex: 1
     },
     nombreText: {
-        // Ponle el color azul marino que usan tus compas: '#1a3a5c' y hazlo negrita.
         color: '#1A3A5C',
         fontWeight: 'bold'
     },
     mensajeText: {
-        // Ponle un gris discreto.
         color: '#b4b6b7ff'
     },
     unreadDot: {
