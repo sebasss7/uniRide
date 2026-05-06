@@ -1,5 +1,11 @@
 import { Chat, Mensaje, Usuario } from '@/types';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 
 //Definir los datos que necesita la tarjeta
 interface Props {
@@ -45,24 +51,16 @@ const styles = StyleSheet.create({
     chatContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
-        gap: 12
-    },
-    textContainer: {
-        flex: 1
-    },
-    nombreText: {
-        color: '#1A3A5C',
-        fontWeight: 'bold'
-    },
-    mensajeText: {
-        color: '#b4b6b7ff'
-    },
-    unreadDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: '#4a90c4',
+        backgroundColor: '#eaf2fb',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        marginHorizontal: 20,
+        shadowColor: '#1a3a5c',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
     },
     avatar: {
         width: 44,
@@ -81,5 +79,27 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: '700',
+    },
+    textContainer: {
+        flex: 1,
+        marginLeft: 12,
+        justifyContent: 'center',
+    },
+    nombreText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a3a5c',
+        marginBottom: 4,
+    },
+    mensajeText: {
+        fontSize: 14,
+        color: '#4a6a82',
+    },
+    unreadDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#4a90c4',
+        marginLeft: 10,
     }
 });
