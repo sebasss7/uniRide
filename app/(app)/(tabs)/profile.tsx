@@ -1,10 +1,10 @@
 import AddVehicleModal from '@/components/profile/AddVehicleModal';
 import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
+import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
-import { useVehiculoStore } from '@/store/vehiclesStore';
 import { Vehiculo } from '@/types';
 import { Pencil, PlusCircle } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Image,
     SafeAreaView,
@@ -19,11 +19,20 @@ export default function PerfilScreen() {
     const { usuario, login } = useAuthStore();
     const [modalEditarVisible, setModalEditarVisible] = useState(false);
 
+    const [vehiculos, setVehiculos] = useState<Vehiculo[]>(() => vehiclesMock);
+
     const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
 
-    const { getVehiculosDeUsuario, agregarVehiculo, editarVehiculo } = useVehiculoStore();
-    const vehiculos = getVehiculosDeUsuario(usuario?.id ?? "");
+    const vehiculosUsuario = vehiculos.filter(
+        (v) => v.usuario_id === usuario?.id
+    );
+
+    useEffect(() => {
+        if (usuario?.id) {
+            setVehiculos(vehiclesMock);
+        }
+    }, [usuario?.id]);
 
     if (!usuario) return null;
 
@@ -48,9 +57,21 @@ export default function PerfilScreen() {
 
     const handleGuardarVehiculo = (datos: Omit<Vehiculo, 'id' | 'usuario_id'>) => {
         if (vehiculoEditando) {
-            editarVehiculo(vehiculoEditando.id, datos);
+            setVehiculos((prev) =>
+                prev.map((v) =>
+                    v.id === vehiculoEditando.id
+                        ? { ...v, ...datos }
+                        : v
+                )
+            );
         } else {
-            agregarVehiculo({ ...datos, usuario_id: usuario?.id ?? "" });
+            const nuevoVehiculo: Vehiculo = {
+                id: Date.now().toString(),
+                usuario_id: usuario?.id ?? "",
+                ...datos
+            };
+
+            setVehiculos((prev) => [...prev, nuevoVehiculo]);
         }
     };
 
@@ -126,10 +147,10 @@ export default function PerfilScreen() {
                         <PlusCircle style={styles.addIcon} size={20} color="#1a3a5c" />
                     </TouchableOpacity>
 
-                    {vehiculos.length === 0 ? (
+                    {vehiculosUsuario.length === 0 ? (
                         <Text style={styles.sinVehiculos}>No tienes vehículos registrados</Text>
                     ) : (
-                        vehiculos.map((v) => (
+                        vehiculosUsuario.map((v) => (
                             <View key={v.id} style={styles.vehiculoCard}>
                                 <View style={styles.vehiculoInfo}>
                                     <Text style={styles.vehiculoMarca}>{v.marca}</Text>
