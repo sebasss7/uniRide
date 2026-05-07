@@ -3,9 +3,11 @@ import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
 import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
 import { Vehiculo } from '@/types';
+import { router } from 'expo-router';
 import { Pencil, PlusCircle } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+    Alert,
     Image,
     SafeAreaView,
     ScrollView,
@@ -17,14 +19,23 @@ import {
 
 export default function PerfilScreen() {
     const { usuario, login } = useAuthStore();
+    const logout = useAuthStore((state) => state.logout);
+
     const [modalEditarVisible, setModalEditarVisible] = useState(false);
+    const [vehiculos, setVehiculos] = useState<Vehiculo[]>(() => vehiclesMock);
 
     const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
 
-    const [vehiculos, setVehiculos] = useState<Vehiculo[]>(
-        vehiclesMock.filter((v) => v.usuario_id === usuario?.id)
+    const vehiculosUsuario = vehiculos.filter(
+        (v) => v.usuario_id === usuario?.id
     );
+
+    useEffect(() => {
+        if (usuario?.id) {
+            setVehiculos(vehiclesMock);
+        }
+    }, [usuario?.id]);
 
     if (!usuario) return null;
 
@@ -42,6 +53,24 @@ export default function PerfilScreen() {
         login({ ...usuario, ...datos });
     };
 
+    const handleLogout = () => {
+        Alert.alert(
+            "Cerrar sesión",
+            "¿Estás seguro que deseas salir?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Salir",
+                    style: "destructive",
+                    onPress: () => {
+                        logout();
+                        router.replace("/login");
+                    },
+                },
+            ]
+        );
+    };
+
     const handleAbrirVehiculo = (vehiculo?: Vehiculo) => {
         setVehiculoEditando(vehiculo ?? null);
         setModalVehiculoVisible(true);
@@ -49,18 +78,21 @@ export default function PerfilScreen() {
 
     const handleGuardarVehiculo = (datos: Omit<Vehiculo, 'id' | 'usuario_id'>) => {
         if (vehiculoEditando) {
-            // Editar
             setVehiculos((prev) =>
-                prev.map((v) => (v.id === vehiculoEditando.id ? { ...v, ...datos } : v))
+                prev.map((v) =>
+                    v.id === vehiculoEditando.id
+                        ? { ...v, ...datos }
+                        : v
+                )
             );
         } else {
-            // Nuevo
-            const nuevo: Vehiculo = {
-                id: String(Date.now()),
-                usuario_id: usuario.id,
-                ...datos,
+            const nuevoVehiculo: Vehiculo = {
+                id: Date.now().toString(),
+                usuario_id: usuario?.id ?? "",
+                ...datos
             };
-            setVehiculos((prev) => [...prev, nuevo]);
+
+            setVehiculos((prev) => [...prev, nuevoVehiculo]);
         }
     };
 
@@ -136,10 +168,10 @@ export default function PerfilScreen() {
                         <PlusCircle style={styles.addIcon} size={20} color="#1a3a5c" />
                     </TouchableOpacity>
 
-                    {vehiculos.length === 0 ? (
+                    {vehiculosUsuario.length === 0 ? (
                         <Text style={styles.sinVehiculos}>No tienes vehículos registrados</Text>
                     ) : (
-                        vehiculos.map((v) => (
+                        vehiculosUsuario.map((v) => (
                             <View key={v.id} style={styles.vehiculoCard}>
                                 <View style={styles.vehiculoInfo}>
                                     <Text style={styles.vehiculoMarca}>{v.marca}</Text>
@@ -156,6 +188,14 @@ export default function PerfilScreen() {
                         ))
                     )}
                 </View>
+
+                <View style={styles.logoutContainer}>
+                    <TouchableOpacity style={styles.btnLogout} onPress={handleLogout} activeOpacity={0.85}>
+                        <Text style={styles.btnLogoutText}>Cerrar sesión</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 32 }} />
 
                 <View style={{ height: 32 }} />
             </ScrollView>
@@ -336,5 +376,21 @@ const styles = StyleSheet.create({
     },
     editIcon: {
         fontSize: 18,
+    },
+    logoutContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 8,
+    },
+    btnLogout: {
+        borderWidth: 2,
+        borderColor: "#c0392b",
+        borderRadius: 30,
+        paddingVertical: 14,
+        alignItems: "center",
+    },
+    btnLogoutText: {
+        color: "#c0392b",
+        fontWeight: "700",
+        fontSize: 15,
     },
 });
