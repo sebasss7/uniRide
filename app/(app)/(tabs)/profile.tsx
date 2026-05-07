@@ -3,9 +3,11 @@ import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
 import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
 import { Vehiculo } from '@/types';
+import { router } from 'expo-router';
 import { Pencil, PlusCircle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
+    Alert,
     Image,
     SafeAreaView,
     ScrollView,
@@ -17,8 +19,9 @@ import {
 
 export default function PerfilScreen() {
     const { usuario, login } = useAuthStore();
-    const [modalEditarVisible, setModalEditarVisible] = useState(false);
+    const logout = useAuthStore((state) => state.logout);
 
+    const [modalEditarVisible, setModalEditarVisible] = useState(false);
     const [vehiculos, setVehiculos] = useState<Vehiculo[]>(() => vehiclesMock);
 
     const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
@@ -48,6 +51,24 @@ export default function PerfilScreen() {
 
     const handleGuardarPerfil = (datos: Partial<typeof usuario>) => {
         login({ ...usuario, ...datos });
+    };
+
+    const handleLogout = () => {
+        Alert.alert(
+            "Cerrar sesión",
+            "¿Estás seguro que deseas salir?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Salir",
+                    style: "destructive",
+                    onPress: () => {
+                        logout();
+                        router.replace("/login");
+                    },
+                },
+            ]
+        );
     };
 
     const handleAbrirVehiculo = (vehiculo?: Vehiculo) => {
@@ -167,6 +188,14 @@ export default function PerfilScreen() {
                         ))
                     )}
                 </View>
+
+                <View style={styles.logoutContainer}>
+                    <TouchableOpacity style={styles.btnLogout} onPress={handleLogout} activeOpacity={0.85}>
+                        <Text style={styles.btnLogoutText}>Cerrar sesión</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 32 }} />
 
                 <View style={{ height: 32 }} />
             </ScrollView>
@@ -347,5 +376,21 @@ const styles = StyleSheet.create({
     },
     editIcon: {
         fontSize: 18,
+    },
+    logoutContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 8,
+    },
+    btnLogout: {
+        borderWidth: 2,
+        borderColor: "#c0392b",
+        borderRadius: 30,
+        paddingVertical: 14,
+        alignItems: "center",
+    },
+    btnLogoutText: {
+        color: "#c0392b",
+        fontWeight: "700",
+        fontSize: 15,
     },
 });
