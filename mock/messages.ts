@@ -27,5 +27,32 @@ export const mensajesMock: Mensaje[] = [
         fecha: '2026-05-04',
         hora: '16:36',
         leido: false, //Para marcar el chat como "no leído" con el punto azuñ
+    },
+    {
+        id: '4',
+        chat_id: '2',
+        id_emisor: '3', // Carlos
+        contenido: 'Oye, ¿todavía tienes lugares para el viaje a Rectoría?',
+        fecha: '2026-05-08',
+        hora: '09:15',
+        leido: true,
+    },
+    {
+        id: '5',
+        chat_id: '2',
+        id_emisor: '1',
+        contenido: 'Sí, me queda uno. ¿Te veo en la parada de la biblio?',
+        fecha: '2026-05-08',
+        hora: '09:17',
+        leido: false,
+    },
+    {
+        id: '6',
+        chat_id: '3',
+        id_emisor: '4', // Mariana
+        contenido: 'Ya voy en camino, tuve un problema con el coche',
+        fecha: '2026-05-08',
+        hora: '14:20',
+        leido: false,
     }
 ];

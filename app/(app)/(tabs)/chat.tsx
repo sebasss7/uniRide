@@ -2,6 +2,7 @@ import ChatListItem from '@/components/chats/chatListItem';
 import { chatsMock } from '@/mock/chats';
 import { mensajesMock } from '@/mock/messages';
 import { usersMock } from '@/mock/users';
+import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
@@ -17,6 +18,7 @@ export default function ChatScreen() {
 
     //Guardar el input de searchBar
     const [searchQuery, setSearchQuery] = useState('');
+    const router = useRouter();
     const filterChats = useMemo(() => {
         if (!searchQuery.trim()) return chatsMock;
 
@@ -47,7 +49,11 @@ export default function ChatScreen() {
                 otroUsuario={otroUsuario}
                 ultimoMensaje={ultimoMensaje}
                 onPress={() => {
-                    //Aquí faltaría poner la navegación ala conversación privada
+                    //Ruta incluyendo el grupo (app)
+                    router.push({
+                        pathname: '/(app)/chats/[id]',
+                        params: { id: chat.id }
+                    });
                 }}
             />
         );
