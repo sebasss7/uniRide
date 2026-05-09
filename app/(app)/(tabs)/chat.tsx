@@ -2,6 +2,7 @@ import ChatListItem from '@/components/chats/chatListItem';
 import { chatsMock } from '@/mock/chats';
 import { mensajesMock } from '@/mock/messages';
 import { usersMock } from '@/mock/users';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -15,6 +16,8 @@ import {
 
 export default function ChatScreen() {
     const myId = '1';
+    //ACtualizar el puntito azul cuando se renderice nuevamente la página de chats
+    const isFocused = useIsFocused();
 
     //Guardar el input de searchBar
     const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +31,7 @@ export default function ChatScreen() {
 
             return otroUsuario.nombre.toLowerCase().includes(searchQuery.toLowerCase());
         });
-    }, [searchQuery]);
+    }, [searchQuery, isFocused]);
 
     //Se ejecuta por cada chat existente en chatsMock
     const renderChat = ({ item: chat }: { item: any }) => {
@@ -81,6 +84,7 @@ export default function ChatScreen() {
                     </View>
                 }
                 renderItem={renderChat}
+                extraData={isFocused}
             />
         </SafeAreaView>
     );

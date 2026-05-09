@@ -28,7 +28,7 @@ export const usersMock: Usuario[] = [
         rol: 1, // pasajero
         nombre: 'Carlos Ruiz',
         correo: 'carlos.ruiz@alumnos.uaq.mx',
-        password: 'password123',
+        password: '123456',
         telefono: '4429876543',
         nacimiento: '1999-11-05',
         descripcion: 'Estudiante de Derecho.',
@@ -39,7 +39,7 @@ export const usersMock: Usuario[] = [
         rol: 2, // conductor
         nombre: 'Mariana Vega',
         correo: 'mariana.vega@alumnos.uaq.mx',
-        password: 'securepass',
+        password: '123456',
         telefono: '4425557788',
         nacimiento: '2002-01-15',
         descripcion: 'Ingeniería en Automatización.',

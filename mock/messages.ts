@@ -54,5 +54,32 @@ export const mensajesMock: Mensaje[] = [
         fecha: '2026-05-08',
         hora: '14:20',
         leido: false,
+    },
+    {
+        id: '7',
+        chat_id: '2',
+        id_emisor: '3', // Carlos
+        contenido: 'Vale, nos vemos ahí afuera',
+        fecha: '2026-05-08',
+        hora: '09:17',
+        leido: true,
+    },
+    {
+        id: '8',
+        chat_id: '3',
+        id_emisor: '4', // Mariana
+        contenido: 'Te veo afuera de la entrada de Química?',
+        fecha: '2026-05-08',
+        hora: '14:21',
+        leido: false,
+    },
+    {
+        id: '9',
+        chat_id: '3',
+        id_emisor: '1',
+        contenido: 'Te parece mejor por la entrada de 5 de febrero?',
+        fecha: '2026-05-08',
+        hora: '14:23',
+        leido: false,
     }
 ];

@@ -8,6 +8,7 @@ import {
     MoreVertical,
     Send
 } from "lucide-react-native";
+import { useEffect } from "react";
 import {
     FlatList,
     Image,
@@ -51,6 +52,18 @@ export default function ChatPrivateScreen() {
         );
     };
 
+    //Marcar como "leído" para quitar la burbujita azul
+    useEffect(() => {
+        let actualizado = false;
+
+        mensajesChat.forEach(mensaje => {
+            if (mensaje.id_emisor !== myId && !mensaje.leido) {
+                mensaje.leido = true;
+                actualizado = true;
+            }
+        });
+    }, [id]);
+
     //Mostrar error por si no se encuentra el chat
     if (!otroUsuario) {
         return (
@@ -63,10 +76,9 @@ export default function ChatPrivateScreen() {
     return (
         <KeyboardAvoidingView
             style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
             <SafeAreaView style={styles.inner}>
-
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
                         <ArrowLeft size={24} color="#000000" />
@@ -97,7 +109,6 @@ export default function ChatPrivateScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-
                 <View style={styles.divider} />
 
                 <View style={styles.messagesContainer}>
