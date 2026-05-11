@@ -29,9 +29,7 @@ import {
 export default function homeScreen() {
   const usuario = useAuthStore((state) => state.usuario);
 
-  const tieneVehiculos = vehiclesMock.some(
-    (v) => v.usuario_id === usuario?.id
-  );
+  const tieneVehiculos = vehiclesMock.some((v) => v.usuario_id === usuario?.id);
 
   const [viajes, setViajes] = useState<Viaje[]>(() => tripsMock);
   const [modalVisible, setModalVisible] = useState(false);
@@ -52,7 +50,6 @@ export default function homeScreen() {
   const formatHora = (date: Date) => {
     return date.toTimeString().slice(0, 5); // HH:mm
   };
-
   const [filtrOrigen, setFiltroOrigen] = useState("");
   const [filtroDestino, setFiltroDestino] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
@@ -143,7 +140,7 @@ export default function homeScreen() {
                     style={styles.searchInput}
                     placeholder="Punto de partida"
                     placeholderTextColor="#7a9bb5"
-                    value={origen}
+                    value={origen?.address || ""}
                     editable={false}
                     pointerEvents="none"
                   />
@@ -156,7 +153,7 @@ export default function homeScreen() {
                   style={styles.searchInput}
                   placeholder="Punto de destino"
                   placeholderTextColor="#7a9bb5"
-                  value={destino}
+                  value={destino?.address || ""}
                   onChangeText={setFiltroDestino}
                 />
               </View>
@@ -168,10 +165,7 @@ export default function homeScreen() {
                 >
                   <Calendar1 size={16} color="#1a3a5c" />
                   <Text
-                    style={[
-                      styles.searchInput,
-                      !fecha && { color: "#7a9bb5" }
-                    ]}
+                    style={[styles.searchInput, !fecha && { color: "#7a9bb5" }]}
                   >
                     {fecha ? formatFecha(fecha) : "Fecha"}
                   </Text>
@@ -182,10 +176,7 @@ export default function homeScreen() {
                 >
                   <AlarmClock size={16} color="#1a3a5c" />
                   <Text
-                    style={[
-                      styles.searchInput,
-                      !hora && { color: "#7a9bb5" }
-                    ]}
+                    style={[styles.searchInput, !hora && { color: "#7a9bb5" }]}
                   >
                     {hora ? formatHora(hora) : "Hora"}
                   </Text>
@@ -258,8 +249,7 @@ export default function homeScreen() {
           const now = new Date();
 
           if (fecha) {
-            const mismaFecha =
-              fecha.toDateString() === now.toDateString();
+            const mismaFecha = fecha.toDateString() === now.toDateString();
 
             if (mismaFecha && selectedDate < now) {
               return;

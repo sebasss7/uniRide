@@ -1,38 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, ViewProps } from "react-native";
 import MapView, { MapPressEvent } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
 
 import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
 
+import { Place } from "@/types/place";
 import { Marker } from "react-native-maps";
 
 interface Props extends ViewProps {
   initialLocation: LatLng;
   showUserLocation?: boolean;
+  selecting?: boolean;
+  originMarker?: Place | null;
+  destinationMarker?: Place | null;
+  tempMarker?: LatLng | null;
 
-  selecting?: "origen" | "destino" | null;
-  setOrigen?: (value: string) => void;
-  setDestino?: (value: string) => void;
-  setSelecting?: (value: null) => void;
+  onSelectLocation?: (coords: LatLng) => void;
+  onDragOrigin?: (coords: LatLng) => void;
+  onDragDestination?: (coords: LatLng) => void;
 }
 
 const CustomMap = ({
   initialLocation,
   showUserLocation = true,
   selecting,
-  setOrigen,
-  setDestino,
-  setSelecting,
+  onSelectLocation,
+  onDragOrigin,
+  onDragDestination,
+  originMarker,
+  destinationMarker,
+
   ...rest
 }: Props) => {
   const mapRef = useRef<MapView>(null);
   const [isFollowingUser, setIsFollowingUser] = useState(true);
-
-  const [originMarker, setOriginMarker] = useState<LatLng | null>(null);
-  const [destinationMarker, setDestinationMarker] = useState<LatLng | null>(
-    null,
-  );
 
   const { watchLocation, clearWatchLocation, lastKnownLocation, getLocation } =
     useLocationStore();
@@ -90,42 +93,51 @@ const CustomMap = ({
 
           const coords = e.nativeEvent.coordinate;
 
-          if (selecting === "origen") {
-            setOriginMarker(coords);
-            setOrigen?.(`${coords.latitude}, ${coords.longitude}`);
-          }
-
-          if (selecting === "destino") {
-            setDestinationMarker(coords);
-            setDestino?.(`${coords.latitude}, ${coords.longitude}`);
-          }
-
-          setSelecting?.(null);
+          onSelectLocation?.(coords);
         }}
       >
+        {originMarker && destinationMarker && (
+          <MapViewDirections
+            origin={{
+              latitude: originMarker.latitude,
+              longitude: originMarker.longitude,
+            }}
+            destination={{
+              latitude: destinationMarker.latitude,
+              longitude: destinationMarker.longitude,
+            }}
+            apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY!}
+            strokeWidth={4}
+            strokeColor="blue"
+          />
+        )}
         {originMarker && (
           <Marker
-            coordinate={originMarker}
+            coordinate={{
+              latitude: originMarker.latitude,
+              longitude: originMarker.longitude,
+            }}
             title="Origen"
             draggable
             onDragEnd={(e) => {
               const coords = e.nativeEvent.coordinate;
-              setOriginMarker(coords);
-              setOrigen?.(`${coords.latitude}, ${coords.longitude}`);
+              onDragOrigin?.(coords);
             }}
           />
         )}
 
         {destinationMarker && (
           <Marker
-            coordinate={destinationMarker}
+            coordinate={{
+              latitude: destinationMarker.latitude,
+              longitude: destinationMarker.longitude,
+            }}
             title="Destino"
             pinColor="blue"
             draggable
             onDragEnd={(e) => {
               const coords = e.nativeEvent.coordinate;
-              setDestinationMarker(coords);
-              setDestino?.(`${coords.latitude}, ${coords.longitude}`);
+              onDragDestination?.(coords);
             }}
           />
         )}

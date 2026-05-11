@@ -4,14 +4,92 @@ import { ActivityIndicator, View } from "react-native";
 
 import CustomMap from "@/components/maps/customMap";
 import TripModal from "@/components/maps/modalMap";
+import { geocodeAddress, reverseGeocode } from "@/services/googleMaps";
 import { useLocationStore } from "@/store/useLocationStore";
+import { LatLng } from "@/types/latLng";
+
+import { getPlaceDetails } from "@/services/googleMaps";
 
 const MapScreen = () => {
   const { lastKnownLocation, getLocation } = useLocationStore();
   const { origen, destino, setOrigen, setDestino } = useTripStore();
 
   const [modalVisible, setModalVisible] = useState(true);
-  const [selecting, setSelecting] = useState<"origen" | "destino" | null>(null);
+  type ModalStep = "form" | "selectingOrigin" | "selectingDestination";
+
+  const [tempLocation, setTempLocation] = useState<LatLng | null>(null);
+
+  const handleSelectLocation = (coords: LatLng) => {
+    setTempLocation(coords);
+  };
+
+  const handleConfirmLocation = async () => {
+    const handleSearchDestination = async (text: string) => {
+      const place = await geocodeAddress(text);
+
+      if (!place) return;
+
+      setDestino(place);
+    };
+
+    if (!tempLocation) return;
+
+    const place = await reverseGeocode(tempLocation);
+
+    if (!place) return;
+
+    if (step === "selectingOrigin") {
+      await updateOriginFromCoords(tempLocation);
+
+      setTempLocation(null);
+
+      setStep("selectingDestination");
+
+      return;
+    }
+
+    if (step === "selectingDestination") {
+      await updateDestinationFromCoords(tempLocation);
+
+      setTempLocation(null);
+
+      setStep("form");
+    }
+  };
+
+  const handleSearchOrigin = async (placeId: string) => {
+    const place = await getPlaceDetails(placeId);
+
+    if (!place) return;
+
+    setOrigen(place);
+  };
+
+  const handleSearchDestination = async (placeId: string) => {
+    const place = await getPlaceDetails(placeId);
+
+    if (!place) return;
+
+    setDestino(place);
+  };
+
+  const updateOriginFromCoords = async (coords: LatLng) => {
+    const place = await reverseGeocode(coords);
+
+    if (!place) return;
+
+    setOrigen(place);
+  };
+
+  const updateDestinationFromCoords = async (coords: LatLng) => {
+    const place = await reverseGeocode(coords);
+
+    if (!place) return;
+
+    setDestino(place);
+  };
+
+  const [step, setStep] = useState<ModalStep>("form");
 
   useEffect(() => {
     if (lastKnownLocation === null) {
@@ -31,18 +109,25 @@ const MapScreen = () => {
     <View style={{ flex: 1 }}>
       <CustomMap
         initialLocation={lastKnownLocation}
-        selecting={selecting}
-        setOrigen={setOrigen}
-        setDestino={setDestino}
-        setSelecting={setSelecting}
+        selecting={step !== "form"}
+        onSelectLocation={handleSelectLocation}
+        originMarker={origen}
+        destinationMarker={destino}
+        tempMarker={tempLocation}
+        onDragOrigin={updateOriginFromCoords}
+        onDragDestination={updateDestinationFromCoords}
       />
-
       <TripModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
         origen={origen}
         destino={destino}
-        setSelecting={setSelecting}
+        step={step}
+        tempLocation={tempLocation}
+        onSelectOrigin={() => setStep("selectingOrigin")}
+        onSelectDestination={() => setStep("selectingDestination")}
+        onConfirmLocation={handleConfirmLocation}
+        onSearchOrigin={handleSearchOrigin}
+        onSearchDestination={handleSearchDestination}
       />
     </View>
   );

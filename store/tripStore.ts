@@ -1,16 +1,17 @@
+import { Place } from "@/types/place";
 import { create } from "zustand";
 
 interface TripState {
-  origen: string;
-  destino: string;
+  origen: Place | null;
+  destino: Place | null;
 
-  setOrigen: (value: string) => void;
-  setDestino: (value: string) => void;
+  setOrigen: (place: Place) => void;
+  setDestino: (place: Place) => void;
 }
 
 export const useTripStore = create<TripState>((set) => ({
-  origen: "",
-  destino: "",
+  origen: null,
+  destino: null,
 
   setOrigen: (value) => set({ origen: value }),
   setDestino: (value) => set({ destino: value }),
