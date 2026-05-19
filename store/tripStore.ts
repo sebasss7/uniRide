@@ -7,6 +7,7 @@ interface TripState {
 
   setOrigen: (place: Place) => void;
   setDestino: (place: Place) => void;
+  clearTrip: () => void;
 }
 
 export const useTripStore = create<TripState>((set) => ({
@@ -15,4 +16,10 @@ export const useTripStore = create<TripState>((set) => ({
 
   setOrigen: (value) => set({ origen: value }),
   setDestino: (value) => set({ destino: value }),
+
+  clearTrip: () =>
+    set({
+      origen: null,
+      destino: null,
+    }),
 }));

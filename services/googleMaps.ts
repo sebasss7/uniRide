@@ -62,18 +62,20 @@ export const geocodeAddress = async (
 export interface PlaceSuggestion {
   placeId: string;
   description: string;
+  mainText: string;
+  secondaryText: string;
 }
 
 export const searchPlaces = async (
   input: string,
 ): Promise<PlaceSuggestion[]> => {
   try {
-    if (input.length < 3) return [];
+    if (input.trim().length < 3) return [];
 
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
         input,
-      )}&key=${API_KEY}`,
+      )}&key=${API_KEY}&language=es-419&components=country:mx`,
     );
 
     const data = await response.json();
@@ -83,6 +85,8 @@ export const searchPlaces = async (
     return data.predictions.map((item: any) => ({
       placeId: item.place_id,
       description: item.description,
+      mainText: item.structured_formatting?.main_text ?? item.description,
+      secondaryText: item.structured_formatting?.secondary_text ?? "",
     }));
   } catch (error) {
     console.log("Places autocomplete error:", error);
@@ -96,7 +100,7 @@ export const getPlaceDetails = async (
 ): Promise<Place | null> => {
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${API_KEY}`,
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,geometry&key=${API_KEY}&language=es-419`,
     );
 
     const data = await response.json();
@@ -106,6 +110,7 @@ export const getPlaceDetails = async (
     if (!result) return null;
 
     return {
+      name: result.name,
       address: result.formatted_address,
       latitude: result.geometry.location.lat,
       longitude: result.geometry.location.lng,
@@ -115,4 +120,16 @@ export const getPlaceDetails = async (
 
     return null;
   }
+};
+
+export const getPlaceLabel = (place: Place | null) => {
+  if (!place) return "";
+
+  if (place.name) return place.name;
+
+  return place.address
+    .split(",")
+    .map((part) => part.trim())
+    .slice(0, 2)
+    .join(", ");
 };

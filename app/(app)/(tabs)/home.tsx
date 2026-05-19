@@ -5,6 +5,7 @@ import { tripsMock } from "@/mock/trips";
 import { usersMock } from "@/mock/users";
 import { vehiclesMock } from "@/mock/vehicles";
 import { useAuthStore } from "@/store/authStore";
+import { useViajesStore } from "@/store/realTripStore";
 import { useTripStore } from "@/store/tripStore";
 import { Viaje } from "@/types";
 import { router } from "expo-router";
@@ -35,6 +36,8 @@ export default function homeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const { origen, destino } = useTripStore();
+
+  const realtrips = useViajesStore((state) => state.viajes);
 
   // date picker
   const [fecha, setFecha] = useState<Date | null>(null);
