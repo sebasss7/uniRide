@@ -46,7 +46,9 @@ export interface SolicitudViaje {
   viaje_id: string;
   pasajero_id: string;
   estado: "aprobado" | "denegado" | "en espera";
-  forma_pago: 1 | 2; // 1: efectivo, 2: tarjeta
+  forma_pago: 1 | 2;
+  asientos_reservados: number;
+  total: number;
 }
 
 export interface Reseña {

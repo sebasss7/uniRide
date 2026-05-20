@@ -115,7 +115,7 @@ export default function homeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={viajesFiltrados}
+        data={realtrips}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -221,7 +221,13 @@ export default function homeScreen() {
             viaje={item}
             conductor={getConductor(item.conductor_id)}
             onPress={() => {
-              console.log("Ver viaje", item.id);
+              console.log("ID enviado:", item.id);
+              router.push({
+                pathname: "/trips/tripDetail",
+                params: {
+                  id: item.id,
+                },
+              });
             }}
           />
         )}

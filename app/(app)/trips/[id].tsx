@@ -1,4 +1,5 @@
 import CustomMap from "@/components/maps/customMap";
+import { useViajesStore } from "@/store/realTripStore";
 import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
 import { Place } from "@/types/place";
@@ -8,7 +9,13 @@ import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const TripActiveScreen = () => {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const viaje = useViajesStore((state) =>
+    state.viajes.find((item) => item.id === id),
+  );
+
+  const finalizarViaje = useViajesStore((state) => state.finalizarViaje);
 
   const {
     lastKnownLocation,
@@ -28,18 +35,21 @@ const TripActiveScreen = () => {
   );
   const [simulationIndex, setSimulationIndex] = useState(0);
 
-  // Temporal: aquí luego debes buscar tu viaje real por id.
+  const origen: Place | null = viaje
+    ? {
+        address: viaje.origen,
+        latitude: viaje.origenCoords.latitude,
+        longitude: viaje.origenCoords.longitude,
+      }
+    : null;
 
-  const origen: Place = {
-    address: "Coahuila 215",
-    latitude: 20.64843,
-    longitude: -100.455774,
-  };
-  const destino: Place = {
-    address: "Facultad de Informática",
-    latitude: 20.704,
-    longitude: -100.443,
-  };
+  const destino: Place | null = viaje
+    ? {
+        address: viaje.destino,
+        latitude: viaje.destinoCoords.latitude,
+        longitude: viaje.destinoCoords.longitude,
+      }
+    : null;
 
   const currentDriverLocation = simulatedLocation ?? lastKnownLocation;
 
@@ -50,7 +60,7 @@ const TripActiveScreen = () => {
     return () => {
       clearWatchLocation();
     };
-  }, []);
+  }, [isSimulating, routeCoordinates, viaje, finalizarViaje]);
 
   useEffect(() => {
     if (!currentDriverLocation || routeCoordinates.length === 0) return;
@@ -74,6 +84,13 @@ const TripActiveScreen = () => {
 
         if (nextIndex >= routeCoordinates.length) {
           setIsSimulating(false);
+
+          if (viaje) {
+            finalizarViaje(viaje.id);
+          }
+
+          router.back();
+
           return prev;
         }
 
@@ -83,7 +100,7 @@ const TripActiveScreen = () => {
     }, 700);
 
     return () => clearInterval(interval);
-  }, [isSimulating, routeCoordinates]);
+  }, [isSimulating, routeCoordinates, viaje]);
 
   const handleStartSimulation = () => {
     if (routeCoordinates.length === 0) return;
@@ -99,7 +116,10 @@ const TripActiveScreen = () => {
   };
 
   const handleFinishTrip = () => {
-    // Aquí después cambiarías el estado del viaje a "completado"
+    if (!viaje) return;
+
+    finalizarViaje(viaje.id);
+
     router.back();
   };
 
@@ -110,6 +130,14 @@ const TripActiveScreen = () => {
 
     return userLocationList;
   }, [isSimulating, routeCoordinates, simulationIndex, userLocationList]);
+
+  if (!viaje || !origen || !destino) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>No se encontró el viaje.</Text>
+      </View>
+    );
+  }
 
   if (!currentDriverLocation) {
     return (
