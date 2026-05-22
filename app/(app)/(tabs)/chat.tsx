@@ -2,6 +2,7 @@ import ChatListItem from '@/components/chats/chatListItem';
 import { chatsMock } from '@/mock/chats';
 import { mensajesMock } from '@/mock/messages';
 import { usersMock } from '@/mock/users';
+import { useAuthStore } from '@/store/authStore';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
@@ -15,7 +16,8 @@ import {
 } from "react-native";
 
 export default function ChatScreen() {
-    const myId = '1';
+    const { usuario } = useAuthStore();
+    const myId = usuario?.id;
     //ACtualizar el puntito azul cuando se renderice nuevamente la página de chats
     const isFocused = useIsFocused();
 
@@ -23,15 +25,21 @@ export default function ChatScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const filterChats = useMemo(() => {
-        if (!searchQuery.trim()) return chatsMock;
+        const chatsPropios = chatsMock.filter(chat => {
+            return myId && chat.participantes.includes(myId);
+        });
 
-        return chatsMock.filter(chat => {
+        if (!searchQuery.trim()) {
+            return chatsPropios;
+        }
+
+        return chatsPropios.filter(chat => {
             const otroUsuarioId = chat.participantes.find((id: string) => id !== myId);
             const otroUsuario = usersMock.find(u => u.id === otroUsuarioId) || usersMock[0];
 
             return otroUsuario.nombre.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-    }, [searchQuery, isFocused]);
+        })
+    }, [searchQuery, isFocused, myId]);
 
     //Se ejecuta por cada chat existente en chatsMock
     const renderChat = ({ item: chat }: { item: any }) => {

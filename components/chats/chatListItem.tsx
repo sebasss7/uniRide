@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/store/authStore';
 import { Chat, Mensaje, Usuario } from '@/types';
 import {
     Image,
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default function ChatListItem({ chat, otroUsuario, ultimoMensaje, onPress }: Props) {
+    const { usuario } = useAuthStore();
+    const myId = usuario?.id;
     return (
         <TouchableOpacity style={styles.chatContainer} onPress={onPress} activeOpacity={0.85}>
 
@@ -39,7 +42,7 @@ export default function ChatListItem({ chat, otroUsuario, ultimoMensaje, onPress
                 </Text>
             </View>
 
-            {ultimoMensaje && !ultimoMensaje.leido && (
+            {ultimoMensaje && !ultimoMensaje.leido && ultimoMensaje.id_emisor !== myId && (
                 <View style={styles.unreadDot} />
             )}
 

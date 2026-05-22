@@ -1,6 +1,7 @@
 import { chatsMock } from "@/mock/chats";
 import { mensajesMock } from "@/mock/messages";
 import { usersMock } from "@/mock/users";
+import { useAuthStore } from '@/store/authStore';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ArrowLeft,
@@ -26,7 +27,8 @@ export default function ChatPrivateScreen() {
     //Id del chat que se seleccionó en la pantalla anterior (mensajes)
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const myId = '1';
+    const { usuario } = useAuthStore();
+    const myId = usuario?.id;
 
     //Buscar chat actual
     const chat = chatsMock.find(c => c.id === id);
