@@ -1,10 +1,11 @@
 import AddVehicleModal from '@/components/profile/AddVehicleModal';
 import UpdateProfileModal from '@/components/profile/UpdateProfileModal';
+import VerifyProfileModal from '@/components/profile/VerifyProfileModal';
 import { vehiclesMock } from '@/mock/vehicles';
 import { useAuthStore } from '@/store/authStore';
 import { Vehiculo } from '@/types';
 import { router } from 'expo-router';
-import { Pencil, PlusCircle } from 'lucide-react-native';
+import { BadgeAlert, BadgeCheck, Pencil, PlusCircle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
     Alert,
@@ -26,6 +27,8 @@ export default function PerfilScreen() {
 
     const [modalVehiculoVisible, setModalVehiculoVisible] = useState(false);
     const [vehiculoEditando, setVehiculoEditando] = useState<Vehiculo | null>(null);
+
+    const [modalVerificarVisible, setModalVerificarVisible] = useState(false);
 
     const vehiculosUsuario = vehiculos.filter(
         (v) => v.usuario_id === usuario?.id
@@ -51,6 +54,10 @@ export default function PerfilScreen() {
 
     const handleGuardarPerfil = (datos: Partial<typeof usuario>) => {
         login({ ...usuario, ...datos });
+    };
+
+    const handleVerificado = () => {
+        login({ ...usuario, verificado: true });
     };
 
     const handleLogout = () => {
@@ -120,9 +127,30 @@ export default function PerfilScreen() {
                                 </Text>
                             </View>
                         )}
-                        <View style={styles.verificadoBadge}>
-                            <Text style={styles.verificadoIcon}>🛡️</Text>
-                        </View>
+                        <TouchableOpacity
+                            style={[
+                                styles.verificadoBadge,
+                                usuario.verificado
+                                    ? styles.verificadoBadgeActivo
+                                    : styles.verificadoBadgeInactivo,
+                            ]}
+                            onPress={() => !usuario.verificado && setModalVerificarVisible(true)}
+                            activeOpacity={usuario.verificado ? 1 : 0.7}
+                        >
+                            {usuario.verificado ? (
+                                <BadgeCheck
+                                    size={18}
+                                    color="#1a3a5c"
+                                    strokeWidth={2.5}
+                                />
+                            ) : (
+                                <BadgeAlert
+                                    size={18}
+                                    color="#a0b4c8"
+                                    strokeWidth={2.5}
+                                />
+                            )}
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.headerContent}>
@@ -212,6 +240,12 @@ export default function PerfilScreen() {
                 onClose={() => setModalVehiculoVisible(false)}
                 onGuardar={handleGuardarVehiculo}
             />
+
+            <VerifyProfileModal
+                visible={modalVerificarVisible}
+                onClose={() => setModalVerificarVisible(false)}
+                onVerificado={handleVerificado}
+            />
         </SafeAreaView>
     );
 }
@@ -278,8 +312,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    verificadoIcon: {
-        fontSize: 16,
+    verificadoBadgeActivo: {
+        borderColor: "#1a3a5c",
+    },
+
+    verificadoBadgeInactivo: {
+        borderColor: "#a0b4c8",
     },
     btnEditar: {
         alignSelf: 'flex-end',

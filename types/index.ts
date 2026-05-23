@@ -8,6 +8,7 @@ export interface Usuario {
   correo: string;
   password: string;
   telefono: string;
+  verificado: boolean;
 }
 
 export interface Vehiculo {
