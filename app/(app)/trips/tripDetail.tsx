@@ -3,9 +3,18 @@ import { useViajesStore } from "@/store/realTripStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
 import { getTripScheduleLabel } from "@/utils/tripDate";
 import { router, useLocalSearchParams } from "expo-router";
-import { Minus, Plus } from "lucide-react-native";
+import { ChevronRight, Minus, Plus } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { usersMock } from "@/mock/users";
 
 export default function TripDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -39,6 +48,25 @@ export default function TripDetailScreen() {
       </View>
     );
   }
+
+  const conductor = usersMock.find(
+    (usuario) => usuario.id === viaje.conductor_id,
+  );
+
+  const rating = 4.5;
+
+  const handleOpenConductorProfile = () => {
+    if (!conductor) return;
+
+    console.log("Abrir perfil público del conductor:", conductor.id);
+
+    // router.push({
+    //   pathname: "/profile/public",
+    //   params: {
+    //     id: conductor.id,
+    //   },
+    // });
+  };
 
   const total = asientos * viaje.precio;
   const puedeReservar =
@@ -147,6 +175,47 @@ export default function TripDetailScreen() {
       <Text style={styles.title}>Detalle del viaje</Text>
 
       <View style={styles.card}>
+        {conductor && (
+          <>
+            <Text style={styles.label}>Conductor</Text>
+
+            <TouchableOpacity
+              style={styles.driverCard}
+              onPress={handleOpenConductorProfile}
+              activeOpacity={0.8}
+            >
+              <View style={styles.driverMain}>
+                {conductor.imagen_usuario ? (
+                  <Image
+                    source={{ uri: conductor.imagen_usuario }}
+                    style={styles.driverAvatar}
+                  />
+                ) : (
+                  <View style={styles.driverAvatarFallback}>
+                    <Text style={styles.driverAvatarInitial}>
+                      {conductor.nombre.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+
+                <View style={styles.driverInfo}>
+                  <Text style={styles.driverName}>{conductor.nombre}</Text>
+
+                  <View style={styles.driverRatingRow}>
+                    <Text style={styles.driverStar}>★</Text>
+                    <Text style={styles.driverRatingText}>{rating}</Text>
+                    <Text style={styles.driverProfileText}>Ver perfil</Text>
+                  </View>
+                </View>
+              </View>
+
+              <ChevronRight size={20} color="#6f8fa5" />
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+          </>
+        )}
+
         <Text style={styles.label}>Origen</Text>
         <Text style={styles.value}>{viaje.origen}</Text>
 
@@ -387,5 +456,79 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "800",
+  },
+
+  driverCard: {
+    backgroundColor: "#dceef9",
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+
+  driverMain: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  driverAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+
+  driverAvatarFallback: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#1a3a5c",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  driverAvatarInitial: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+
+  driverInfo: {
+    flex: 1,
+  },
+
+  driverName: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1a3a5c",
+    marginBottom: 4,
+  },
+
+  driverRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  driverStar: {
+    color: "#f2b705",
+    fontSize: 14,
+    marginRight: 4,
+  },
+
+  driverRatingText: {
+    fontSize: 13,
+    color: "#1a3a5c",
+    fontWeight: "700",
+    marginRight: 10,
+  },
+
+  driverProfileText: {
+    fontSize: 12,
+    color: "#6f8fa5",
+    fontWeight: "700",
   },
 });
