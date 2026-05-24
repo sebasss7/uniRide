@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, ViewProps } from "react-native";
-import MapView, { MapPressEvent } from "react-native-maps";
+import MapView, { MapPressEvent, Marker, Polyline } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 
 import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
-
 import { Place } from "@/types/place";
-import { Marker } from "react-native-maps";
 
+/* const carImage = require("../../assets/images/carImage.png");
+ */
 interface Props extends ViewProps {
   initialLocation: LatLng;
   showUserLocation?: boolean;
@@ -16,6 +16,11 @@ interface Props extends ViewProps {
   originMarker?: Place | null;
   destinationMarker?: Place | null;
   tempMarker?: LatLng | null;
+
+  driverLocation?: LatLng | null;
+  remainingRoute?: LatLng[];
+  traveledRoute?: LatLng[];
+  onDirectionsReady?: (coordinates: LatLng[]) => void;
 
   onSelectLocation?: (coords: LatLng) => void;
   onDragOrigin?: (coords: LatLng) => void;
@@ -31,6 +36,12 @@ const CustomMap = ({
   onDragDestination,
   originMarker,
   destinationMarker,
+  tempMarker,
+
+  driverLocation,
+  remainingRoute = [],
+  traveledRoute = [],
+  onDirectionsReady,
 
   ...rest
 }: Props) => {
@@ -39,6 +50,8 @@ const CustomMap = ({
 
   const { watchLocation, clearWatchLocation, lastKnownLocation, getLocation } =
     useLocationStore();
+
+  const locationToFollow = driverLocation ?? lastKnownLocation;
 
   useEffect(() => {
     watchLocation();
@@ -49,16 +62,17 @@ const CustomMap = ({
   }, []);
 
   useEffect(() => {
-    if (lastKnownLocation && isFollowingUser) {
-      moveCameraToLocation(lastKnownLocation);
+    if (locationToFollow && isFollowingUser) {
+      moveCameraToLocation(locationToFollow);
     }
-  }, [lastKnownLocation, isFollowingUser]);
+  }, [locationToFollow, isFollowingUser]);
 
   const moveCameraToLocation = (latLng: LatLng) => {
     if (!mapRef.current) return;
 
     mapRef.current.animateCamera({
       center: latLng,
+      zoom: 16,
     });
   };
 
@@ -92,7 +106,6 @@ const CustomMap = ({
           if (!selecting) return;
 
           const coords = e.nativeEvent.coordinate;
-
           onSelectLocation?.(coords);
         }}
       >
@@ -107,10 +120,41 @@ const CustomMap = ({
               longitude: destinationMarker.longitude,
             }}
             apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY!}
-            strokeWidth={4}
-            strokeColor="blue"
+            strokeWidth={remainingRoute.length > 1 ? 0 : 4}
+            strokeColor="#1a3a5c"
+            onReady={(result) => {
+              onDirectionsReady?.(result.coordinates);
+            }}
           />
         )}
+
+        {remainingRoute.length > 1 && (
+          <Polyline
+            coordinates={remainingRoute}
+            strokeWidth={5}
+            strokeColor="#1a3a5c"
+          />
+        )}
+
+        {traveledRoute.length > 1 && (
+          <Polyline
+            coordinates={traveledRoute}
+            strokeWidth={4}
+            strokeColor="#8dbdd8"
+          />
+        )}
+
+        {tempMarker && (
+          <Marker
+            coordinate={{
+              latitude: tempMarker.latitude,
+              longitude: tempMarker.longitude,
+            }}
+            title="Ubicación seleccionada"
+            pinColor="green"
+          />
+        )}
+
         {originMarker && (
           <Marker
             coordinate={{
@@ -141,10 +185,23 @@ const CustomMap = ({
             }}
           />
         )}
+
+        {driverLocation && (
+          <Marker
+            coordinate={{
+              latitude: driverLocation.latitude,
+              longitude: driverLocation.longitude,
+            }}
+            title="Conductor"
+            pinColor="green"
+            /* image={carImage} */
+          />
+        )}
       </MapView>
     </View>
   );
 };
+
 export default CustomMap;
 
 const styles = StyleSheet.create({

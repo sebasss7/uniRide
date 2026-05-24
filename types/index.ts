@@ -1,3 +1,5 @@
+import { LatLng } from "./latLng";
+
 export interface Usuario {
   id: string;
   rol: 1 | 2; // 1: pasajero, 2: conductor
@@ -26,8 +28,13 @@ export interface Viaje {
   conductor_id: string;
   vehiculo_id: string;
   estado_viaje: "disponible" | "completado" | "cancelado" | "en curso";
+
   origen: string;
   destino: string;
+
+  origenCoords: LatLng;
+  destinoCoords: LatLng;
+
   fecha: string;
   hora_salida: string;
   asientos_disponibles: number;
@@ -39,7 +46,9 @@ export interface SolicitudViaje {
   viaje_id: string;
   pasajero_id: string;
   estado: "aprobado" | "denegado" | "en espera";
-  forma_pago: 1 | 2; // 1: efectivo, 2: tarjeta
+  forma_pago: 1 | 2;
+  asientos_reservados: number;
+  total: number;
 }
 
 export interface Reseña {

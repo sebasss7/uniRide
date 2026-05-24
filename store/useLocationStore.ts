@@ -2,8 +2,8 @@ import { LocationSubscription } from "expo-location";
 import { create } from "zustand";
 
 import {
-    getCurrentLocation,
-    watchCurrentPosition,
+  getCurrentLocation,
+  watchCurrentPosition,
 } from "@/core/actions/location/location";
 import { LatLng } from "@/types/latLng";
 
@@ -13,8 +13,9 @@ interface LocationState {
   watchSubscriptionID: LocationSubscription | null;
 
   getLocation: () => Promise<LatLng>;
-  watchLocation: () => void;
+  watchLocation: () => Promise<void>;
   clearWatchLocation: () => void;
+  clearUserLocationList: () => void;
 }
 
 export const useLocationStore = create<LocationState>()((set, get) => ({
@@ -30,6 +31,7 @@ export const useLocationStore = create<LocationState>()((set, get) => ({
 
   watchLocation: async () => {
     const oldSubscription = get().watchSubscriptionID;
+
     if (oldSubscription !== null) {
       get().clearWatchLocation();
     }
@@ -50,5 +52,11 @@ export const useLocationStore = create<LocationState>()((set, get) => ({
     if (subscription !== null) {
       subscription.remove();
     }
+
+    set({ watchSubscriptionID: null });
+  },
+
+  clearUserLocationList: () => {
+    set({ userLocationList: [] });
   },
 }));

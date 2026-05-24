@@ -5,6 +5,7 @@ import { tripsMock } from "@/mock/trips";
 import { usersMock } from "@/mock/users";
 import { vehiclesMock } from "@/mock/vehicles";
 import { useAuthStore } from "@/store/authStore";
+import { useViajesStore } from "@/store/realTripStore";
 import { useTripStore } from "@/store/tripStore";
 import { Viaje } from "@/types";
 import { router } from "expo-router";
@@ -35,6 +36,8 @@ export default function homeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const { origen, destino } = useTripStore();
+
+  const realtrips = useViajesStore((state) => state.viajes);
 
   // date picker
   const [fecha, setFecha] = useState<Date | null>(null);
@@ -112,7 +115,7 @@ export default function homeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={viajesFiltrados}
+        data={realtrips}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -218,7 +221,13 @@ export default function homeScreen() {
             viaje={item}
             conductor={getConductor(item.conductor_id)}
             onPress={() => {
-              console.log("Ver viaje", item.id);
+              console.log("ID enviado:", item.id);
+              router.push({
+                pathname: "/trips/tripDetail",
+                params: {
+                  id: item.id,
+                },
+              });
             }}
           />
         )}
