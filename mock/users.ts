@@ -25,4 +25,26 @@ export const usersMock: Usuario[] = [
         imagen_usuario: undefined,
         verificado: false,
     },
+    {
+        id: '3',
+        rol: 1, // pasajero
+        nombre: 'Carlos Ruiz',
+        correo: 'carlos.ruiz@alumnos.uaq.mx',
+        password: '123456',
+        telefono: '4429876543',
+        nacimiento: '1999-11-05',
+        descripcion: 'Estudiante de Derecho.',
+        imagen_usuario: undefined,
+    },
+    {
+        id: '4',
+        rol: 2, // conductor
+        nombre: 'Mariana Vega',
+        correo: 'mariana.vega@alumnos.uaq.mx',
+        password: '123456',
+        telefono: '4425557788',
+        nacimiento: '2002-01-15',
+        descripcion: 'Ingeniería en Automatización.',
+        imagen_usuario: undefined,
+    }
 ];

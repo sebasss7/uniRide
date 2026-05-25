@@ -1,0 +1,2 @@
+import { Text, View } from 'react-native';
+export default function Placeholder() { return <View><Text>Pendiente. Se agrega esto para que no haya archivos vacíos y evitar confusiones con warnings.</Text></View>; }
