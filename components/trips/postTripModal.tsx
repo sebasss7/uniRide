@@ -20,10 +20,15 @@ import PlaceInput from "../maps/placeInput";
 interface Props {
   visible: boolean;
   onClose: () => void;
+  vehiculoId: string | null;
   onPublicar: (viaje: Omit<Viaje, "id">) => void;
 }
-
-export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
+export default function PostTripModal({
+  visible,
+  onClose,
+  onPublicar,
+  vehiculoId,
+}: Props) {
   const usuario = useAuthStore((state) => state.usuario);
 
   const [fecha, setFecha] = useState("");
@@ -37,6 +42,24 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
   const [destinoPlace, setDestinoPlace] = useState<Place | null>(null);
 
   const handlePublicar = () => {
+    if (!usuario) {
+      Alert.alert("Error", "Debes iniciar sesión para publicar un viaje.");
+      return;
+    }
+
+    if (usuario.rol !== 2) {
+      Alert.alert("Error", "Solo un conductor puede publicar viajes.");
+      return;
+    }
+
+    if (!vehiculoId) {
+      Alert.alert(
+        "Vehículo requerido",
+        "Debes tener un vehículo registrado para publicar un viaje.",
+      );
+      return;
+    }
+
     if (
       !origenPlace ||
       !destinoPlace ||
@@ -45,28 +68,63 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
       !asientos ||
       !precio
     ) {
-      Alert.alert("Error", "Por favor completa todos los campos");
+      Alert.alert("Error", "Por favor completa todos los campos.");
+      return;
+    }
+
+    const asientosNumber = Number(asientos);
+    const precioNumber = Number(precio);
+
+    if (!Number.isInteger(asientosNumber) || asientosNumber <= 0) {
+      Alert.alert("Error", "Ingresa una cantidad válida de asientos.");
+      return;
+    }
+
+    if (Number.isNaN(precioNumber) || precioNumber <= 0) {
+      Alert.alert("Error", "Ingresa un precio válido.");
+      return;
+    }
+
+    const fechaHoraViaje = new Date(`${fecha}T${hora}:00`);
+
+    if (Number.isNaN(fechaHoraViaje.getTime())) {
+      Alert.alert(
+        "Fecha u hora inválida",
+        "Usa el formato de fecha YYYY-MM-DD y hora HH:mm.",
+      );
+      return;
+    }
+
+    if (fechaHoraViaje.getTime() <= new Date().getTime()) {
+      Alert.alert(
+        "Fecha inválida",
+        "El viaje debe programarse para una fecha y hora futura.",
+      );
       return;
     }
 
     onPublicar({
-      conductor_id: usuario?.id ?? "",
-      vehiculo_id: "1",
+      conductor_id: usuario.id,
+      vehiculo_id: vehiculoId,
       estado_viaje: "disponible",
+
       origen: getPlaceLabel(origenPlace),
       destino: getPlaceLabel(destinoPlace),
-      fecha,
-      hora_salida: hora,
-      asientos_disponibles: Number(asientos),
-      precio: Number(precio),
+
       origenCoords: {
         latitude: origenPlace.latitude,
         longitude: origenPlace.longitude,
       },
+
       destinoCoords: {
         latitude: destinoPlace.latitude,
         longitude: destinoPlace.longitude,
       },
+
+      fecha,
+      hora_salida: hora,
+      asientos_disponibles: asientosNumber,
+      precio: precioNumber,
     });
 
     setOrigenText("");
@@ -80,7 +138,6 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
 
     onClose();
   };
-
   return (
     <Modal
       visible={visible}
