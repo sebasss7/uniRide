@@ -7,8 +7,8 @@ import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
 import { Place } from "@/types/place";
 
-/* const carImage = require("../../assets/images/carImage.png");
- */
+const carImage = require("../../assets/images/car.png");
+
 interface Props extends ViewProps {
   initialLocation: LatLng;
   showUserLocation?: boolean;
@@ -194,7 +194,7 @@ const CustomMap = ({
             }}
             title="Conductor"
             pinColor="green"
-            /* image={carImage} */
+            image={carImage}
           />
         )}
       </MapView>

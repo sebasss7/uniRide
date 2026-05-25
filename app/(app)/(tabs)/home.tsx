@@ -17,6 +17,7 @@ import {
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
   Pressable,
   SafeAreaView,
@@ -38,6 +39,7 @@ export default function homeScreen() {
   const { origen, destino } = useTripStore();
 
   const realtrips = useViajesStore((state) => state.viajes);
+  const addTrip = useViajesStore((state) => state.addViaje);
 
   // date picker
   const [fecha, setFecha] = useState<Date | null>(null);
@@ -93,6 +95,10 @@ export default function homeScreen() {
     setFiltrosAplicados(true);
   };
 
+  const vehiculoActual = vehiclesMock.find(
+    (vehiculo) => vehiculo.usuario_id === usuario?.id,
+  );
+
   const handleLimpiar = () => {
     setFiltroOrigen("");
     setFiltroDestino("");
@@ -107,6 +113,20 @@ export default function homeScreen() {
       id: String(Date.now()),
     };
     setViajes((prev) => [viaje, ...prev]);
+  };
+
+  const handlePublicarViaje = (viajeData: Omit<Viaje, "id">) => {
+    const nuevoViaje: Viaje = {
+      id: Date.now().toString(),
+      ...viajeData,
+    };
+
+    addTrip(nuevoViaje);
+
+    Alert.alert(
+      "Viaje publicado",
+      "Tu viaje fue creado correctamente y ya aparece en tus viajes programados.",
+    );
   };
 
   const getConductor = (conductor_id: string) =>
@@ -236,7 +256,8 @@ export default function homeScreen() {
       <PostTripModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onPublicar={handlePublicar}
+        vehiculoId={vehiculoActual?.id ?? null}
+        onPublicar={handlePublicarViaje}
       />
 
       <DatePickerModal
