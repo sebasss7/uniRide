@@ -1,3 +1,4 @@
+import ReviewCard from "@/components/trips/reviewCard";
 import { reviewsMock } from "@/mock/reviews";
 import { usersMock } from "@/mock/users";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -49,7 +50,7 @@ export default function PublicProfileScreen() {
                 <ChevronLeft size={24} color="#1a3a5c" />
             </TouchableOpacity>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <View>
                 <View style={styles.hero}>
                     <Image
                         source={require("@/assets/images/bgPP.jpg")}
@@ -60,7 +61,10 @@ export default function PublicProfileScreen() {
 
                     <View style={styles.avatarWrapper}>
                         {usuario.imagen_usuario ? (
-                            <Image source={{ uri: usuario.imagen_usuario }} style={styles.avatar} />
+                            <Image
+                                source={{ uri: usuario.imagen_usuario }}
+                                style={styles.avatar}
+                            />
                         ) : (
                             <View style={styles.avatarFallback}>
                                 <Text style={styles.avatarInitial}>
@@ -74,30 +78,58 @@ export default function PublicProfileScreen() {
                 <View style={styles.card}>
                     <View style={styles.nombreRow}>
                         <Text style={styles.nombre}>{usuario.nombre}</Text>
+
                         {usuario.verificado ? (
                             <BadgeCheck size={22} color="#1a3a5c" />
                         ) : (
                             <BadgeAlert size={22} color="#a0b4c8" />
                         )}
                     </View>
+
                     {promedio ? (
                         <View style={styles.ratingRow}>
                             <Text style={styles.estrella}>★</Text>
                             <Text style={styles.ratingTexto}>{promedio}</Text>
                         </View>
                     ) : (
-                        <Text style={styles.sinCalificacion}>Sin calificaciones aún</Text>
+                        <Text style={styles.sinCalificacion}>
+                            Sin calificaciones aún
+                        </Text>
                     )}
 
                     {usuario.descripcion ? (
                         <View style={styles.descripcionContainer}>
-                            <Text style={styles.descripcionLabel}>Acerca de mi...</Text>
-                            <Text style={styles.descripcion}>{usuario.descripcion}</Text>
+                            <Text style={styles.descripcionLabel}>
+                                Acerca de mi...
+                            </Text>
+                            <Text style={styles.descripcion}>
+                                {usuario.descripcion}
+                            </Text>
                         </View>
                     ) : null}
                 </View>
 
                 <View style={styles.divider} />
+            </View>
+
+            <ScrollView
+                style={styles.reviewsScroll}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.reseñasContainer}>
+                    {resenas.length === 0 ? (
+                        <View style={styles.sinReseñas}>
+                            <Text style={styles.sinReseñasTexto}>
+                                Este usuario no tiene reseñas aún
+                            </Text>
+                        </View>
+                    ) : (
+                        resenas.map((r) => (
+                            <ReviewCard key={r.id} resena={r} />
+                        ))
+                    )}
+                </View>
+
                 <View style={{ height: 32 }} />
             </ScrollView>
         </SafeAreaView>
@@ -234,6 +266,21 @@ const styles = StyleSheet.create({
         backgroundColor: "#dceef9",
         marginHorizontal: 16,
         marginVertical: 20,
+    },
+    reviewsScroll: {
+        flex: 1,
+    },
+    reseñasContainer: {
+        paddingHorizontal: 16,
+    },
+    sinReseñas: {
+        alignItems: "center",
+        paddingVertical: 32,
+    },
+    sinReseñasTexto: {
+        fontSize: 14,
+        color: "#a0b4c8",
+        fontStyle: "italic",
     },
     noEncontrado: {
         flex: 1,
