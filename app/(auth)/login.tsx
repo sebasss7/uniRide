@@ -50,6 +50,30 @@ export default function AuthScreen() {
       Alert.alert("Error", "Por favor completa todos los campos");
       return;
     }
+
+    const nombreReg = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+    if (!nombreReg.test(nombre.trim())) {
+      Alert.alert(
+        "Nombre inválido",
+      );
+      return;
+    }
+
+    if (!signupEmail.toLowerCase().endsWith("@alumnos.uaq.mx")) {
+      Alert.alert(
+        "Debes usar tu correo institucional",
+      );
+      return;
+    }
+
+    if (signupPassword.length < 8) {
+      Alert.alert(
+        "La contraseña debe tener al menos 8 caracteres",
+      );
+      return;
+    }
+
     //Simulación de registro creando un usuario temporal
     const nuevoUsuario = {
       id: String(Date.now()),
@@ -60,6 +84,7 @@ export default function AuthScreen() {
       telefono,
       nacimiento: "",
       descripcion: "",
+      verificado: false,
       imagen_usuario: undefined,
     };
     login(nuevoUsuario);
@@ -103,7 +128,7 @@ export default function AuthScreen() {
                     activeTab === "login" && styles.tabTextActive,
                   ]}
                 >
-                  login
+                  Login
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -117,7 +142,7 @@ export default function AuthScreen() {
                     activeTab === "signup" && styles.tabTextActive,
                   ]}
                 >
-                  signup
+                  Signup
                 </Text>
               </TouchableOpacity>
             </View>
@@ -172,7 +197,7 @@ export default function AuthScreen() {
                     <Text style={styles.label}>Email</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="ex@gmail.com"
+                      placeholder="ejemplo@alumnos.uaq.mx"
                       placeholderTextColor="#a0b4c8"
                       keyboardType="email-address"
                       autoCapitalize="none"
