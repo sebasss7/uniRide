@@ -204,7 +204,12 @@ export default function TripDetailScreen() {
                   <View style={styles.driverRatingRow}>
                     <Text style={styles.driverStar}>★</Text>
                     <Text style={styles.driverRatingText}>{rating}</Text>
-                    <Text style={styles.driverProfileText}>Ver perfil</Text>
+                    <Text
+                      style={styles.driverProfileText}
+                      onPress={() => router.push(`/user/${conductor.id}`)}
+                    >
+                      Ver perfil
+                    </Text>
                   </View>
                 </View>
               </View>
