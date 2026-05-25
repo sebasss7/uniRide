@@ -11,6 +11,7 @@ export const usersMock: Usuario[] = [
         nacimiento: '2000-05-10',
         descripcion: 'Estudiante de ingeniería',
         imagen_usuario: undefined,
+        verificado: true,
     },
     {
         id: '2',
@@ -22,5 +23,6 @@ export const usersMock: Usuario[] = [
         nacimiento: '2001-03-22',
         descripcion: 'Estudiante de medicina',
         imagen_usuario: undefined,
+        verificado: false,
     },
 ];
