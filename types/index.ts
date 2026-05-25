@@ -52,23 +52,13 @@ export interface SolicitudViaje {
     total: number;
 }
 
-<<<<<<< HEAD
-export interface Reseña {
+export interface Resena {
     id: string;
     conductor_id: string;
     pasajero_id: string;
     puntuacion: number;
     comentario: string;
     fecha: string;
-=======
-export interface Resena {
-  id: string;
-  conductor_id: string;
-  pasajero_id: string;
-  puntuacion: number;
-  comentario: string;
-  fecha: string;
->>>>>>> feat/karen-publicProfile
 }
 
 export interface Mensaje {
