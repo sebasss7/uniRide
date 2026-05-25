@@ -75,6 +75,10 @@ export default function ChatPrivateScreen() {
         );
     }
 
+    const handleOtroUsuarioProfile = () => {
+        router.push(`/user/${otroUsuario.id}`);
+    }
+
     return (
         <KeyboardAvoidingView
             style={styles.container}
@@ -86,7 +90,10 @@ export default function ChatPrivateScreen() {
                         <ArrowLeft size={24} color="#000000" />
                     </TouchableOpacity>
 
-                    <View style={styles.userInfoContainer}>
+                    <TouchableOpacity
+                        style={styles.userInfoContainer}
+                        onPress={handleOtroUsuarioProfile}
+                    >
                         {otroUsuario.imagen_usuario ? (
                             <Image source={{ uri: otroUsuario.imagen_usuario }} style={styles.avatar} />
                         ) : (
@@ -100,7 +107,7 @@ export default function ChatPrivateScreen() {
                         <View style={styles.textContainer}>
                             <Text style={styles.nombreText}>{otroUsuario.nombre}</Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
 
                     <View style={styles.actionsContainer}>
                         <TouchableOpacity style={styles.iconButton}>
