@@ -2,7 +2,9 @@ import { getPlaceLabel } from "@/services/googleMaps";
 import { useAuthStore } from "@/store/authStore";
 import { Viaje } from "@/types";
 import { Place } from "@/types/place";
-import { useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -16,6 +18,7 @@ import {
   View,
 } from "react-native";
 import PlaceInput from "../maps/placeInput";
+import DatePickerModal from "./datePickerModal";
 
 interface Props {
   visible: boolean;
@@ -26,8 +29,13 @@ interface Props {
 export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
   const usuario = useAuthStore((state) => state.usuario);
 
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
+
   const [asientos, setAsientos] = useState("");
   const [precio, setPrecio] = useState("");
   const [origenText, setOrigenText] = useState("");
@@ -35,6 +43,16 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
   const [destinoText, setDestinoText] = useState("");
   const [origenPlace, setOrigenPlace] = useState<Place | null>(null);
   const [destinoPlace, setDestinoPlace] = useState<Place | null>(null);
+
+  useEffect(() => {
+    setFecha(format(selectedDate, "yyyy-MM-dd"));
+
+    setHora(
+      format(selectedDate, "HH:mm", {
+        locale: es,
+      })
+    );
+  }, [selectedDate]);
 
   const handlePublicar = () => {
     if (
@@ -133,23 +151,25 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
               <View style={styles.row}>
                 <View style={styles.rowItem}>
                   <Text style={styles.label}>Fecha</Text>
-                  <TextInput
+                  <TouchableOpacity
                     style={styles.input}
-                    placeholder="2026-04-27"
-                    placeholderTextColor="#a0b4c8"
-                    value={fecha}
-                    onChangeText={setFecha}
-                  />
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text style={{ color: fecha ? "#000" : "#a0b4c8" }}>
+                      {fecha || "Seleccionar fecha"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.rowItem}>
                   <Text style={styles.label}>Hora salida</Text>
-                  <TextInput
+                  <TouchableOpacity
                     style={styles.input}
-                    placeholder="12:00"
-                    placeholderTextColor="#a0b4c8"
-                    value={hora}
-                    onChangeText={setHora}
-                  />
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Text style={{ color: hora ? "#000" : "#a0b4c8" }}>
+                      {hora || "Seleccionar hora"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -198,6 +218,39 @@ export default function PostTripModal({ visible, onClose, onPublicar }: Props) {
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      <DatePickerModal
+        visible={showDatePicker}
+        mode="date"
+        value={selectedDate}
+        onChange={(date) => {
+          const updated = new Date(selectedDate);
+
+          updated.setFullYear(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+          );
+
+          setSelectedDate(updated);
+        }}
+        onClose={() => setShowDatePicker(false)}
+      />
+
+      <DatePickerModal
+        visible={showTimePicker}
+        mode="time"
+        value={selectedDate}
+        onChange={(date) => {
+          const updated = new Date(selectedDate);
+
+          updated.setHours(date.getHours());
+          updated.setMinutes(date.getMinutes());
+
+          setSelectedDate(updated);
+        }}
+        onClose={() => setShowTimePicker(false)}
+      />
     </Modal>
   );
 }
