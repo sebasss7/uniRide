@@ -52,7 +52,7 @@ export interface SolicitudViaje {
   total: number;
 }
 
-export interface Reseña {
+export interface Resena {
   id: string;
   conductor_id: string;
   pasajero_id: string;
