@@ -50,6 +50,7 @@ export interface SolicitudViaje {
   forma_pago: 1 | 2;
   asientos_reservados: number;
   total: number;
+  mensaje?: string;
 }
 
 export interface Resena {

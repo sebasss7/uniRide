@@ -8,8 +8,10 @@ import { useMemo, useState } from "react";
 import {
   Alert,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -36,10 +38,14 @@ export default function TripDetailScreen() {
 
     return solicitudes.find(
       (solicitud) =>
-        solicitud.pasajero_id === usuario.id && solicitud.viaje_id === viaje.id,
+        solicitud.pasajero_id === usuario.id &&
+        solicitud.viaje_id === viaje.id &&
+        solicitud.estado !== "denegado",
     );
   }, [solicitudes, usuario?.id, viaje?.id]);
+
   const [asientos, setAsientos] = useState(1);
+  const [mensaje, setMensaje] = useState("");
 
   if (!viaje) {
     return (
@@ -65,8 +71,8 @@ export default function TripDetailScreen() {
       router.push("/profile");
     } else {
       router.push(`/user/${conductor.id}`);
-    };
-  }
+    }
+  };
 
   const total = asientos * viaje.precio;
   const puedeReservar =
@@ -112,14 +118,6 @@ export default function TripDetailScreen() {
       return;
     }
 
-    if (viaje.estado_viaje !== "disponible") {
-      Alert.alert(
-        "Viaje no disponible",
-        "Este viaje ya no está disponible para reservar.",
-      );
-      return;
-    }
-
     if (asientos > viaje.asientos_disponibles) {
       Alert.alert(
         "No hay suficientes asientos",
@@ -142,7 +140,10 @@ export default function TripDetailScreen() {
       forma_pago: 1,
       asientos_reservados: asientos,
       total,
+      mensaje: mensaje.trim() || undefined,
     });
+
+    setMensaje("");
 
     Alert.alert(
       "Solicitud enviada",
@@ -171,7 +172,7 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>Detalle del viaje</Text>
 
       <View style={styles.card}>
@@ -238,34 +239,51 @@ export default function TripDetailScreen() {
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Reservar asientos</Text>
+      {!solicitudExistente && puedeReservar && (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Reservar asientos</Text>
 
-        <View style={styles.seatSelector}>
-          <TouchableOpacity
-            style={styles.seatButton}
-            onPress={disminuirAsientos}
-            activeOpacity={0.8}
-          >
-            <Minus size={18} color="#1a3a5c" />
-          </TouchableOpacity>
+          <View style={styles.seatSelector}>
+            <TouchableOpacity
+              style={styles.seatButton}
+              onPress={disminuirAsientos}
+              activeOpacity={0.8}
+            >
+              <Minus size={18} color="#1a3a5c" />
+            </TouchableOpacity>
 
-          <Text style={styles.seatNumber}>{asientos}</Text>
+            <Text style={styles.seatNumber}>{asientos}</Text>
 
-          <TouchableOpacity
-            style={styles.seatButton}
-            onPress={aumentarAsientos}
-            activeOpacity={0.8}
-          >
-            <Plus size={18} color="#1a3a5c" />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.seatButton}
+              onPress={aumentarAsientos}
+              activeOpacity={0.8}
+            >
+              <Plus size={18} color="#1a3a5c" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.totalBox}>
+            <Text style={styles.totalLabel}>Total a pagar</Text>
+            <Text style={styles.totalValue}>${total}</Text>
+          </View>
+
+          <Text style={styles.messageLabel}>Mensaje para el conductor</Text>
+
+          <TextInput
+            style={styles.messageInput}
+            placeholder="Ej. Hola, ¿podrías recogerme cerca de la entrada principal?"
+            placeholderTextColor="#7a9bb5"
+            value={mensaje}
+            onChangeText={setMensaje}
+            multiline
+            maxLength={180}
+            textAlignVertical="top"
+          />
+
+          <Text style={styles.messageCounter}>{mensaje.length}/180</Text>
         </View>
-
-        <View style={styles.totalBox}>
-          <Text style={styles.totalLabel}>Total a pagar</Text>
-          <Text style={styles.totalValue}>${total}</Text>
-        </View>
-      </View>
+      )}
 
       {solicitudExistente && (
         <View style={styles.statusBox}>
@@ -273,23 +291,21 @@ export default function TripDetailScreen() {
         </View>
       )}
 
-      <TouchableOpacity
-        style={[styles.btnReservar, !puedeReservar && styles.btnDisabled]}
-        onPress={handleReservar}
-        disabled={!puedeReservar}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.btnReservarText}>
-          {viaje.estado_viaje === "completado"
-            ? "Viaje completado"
-            : viaje.estado_viaje === "cancelado"
-              ? "Viaje cancelado"
-              : viaje.asientos_disponibles <= 0
-                ? "Sin asientos disponibles"
-                : "Reservar viaje"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+      {(!solicitudExistente || solicitudExistente.estado === "denegado") && (
+        <TouchableOpacity
+          style={[styles.btnReservar, !puedeReservar && styles.btnDisabled]}
+          onPress={handleReservar}
+          disabled={!puedeReservar}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnReservarText}>
+            {solicitudExistente?.estado === "denegado"
+              ? "Enviar nueva solicitud"
+              : "Reservar viaje"}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </ScrollView>
   );
 }
 
@@ -530,5 +546,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6f8fa5",
     fontWeight: "700",
+  },
+  messageLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1a3a5c",
+    marginTop: 18,
+    marginBottom: 6,
+  },
+
+  messageInput: {
+    backgroundColor: "#dceef9",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 86,
+    fontSize: 14,
+    color: "#1a3a5c",
+  },
+
+  messageCounter: {
+    textAlign: "right",
+    color: "#7a9bb5",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 4,
   },
 });

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useViajesStore } from "@/store/realTripStore";
 import { useResenasStore } from "@/store/resenasStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
+import { useChatStore } from "@/store/useChatStore";
 import { Usuario, Viaje } from "@/types";
 import { getEffectiveTripStatus, getTripScheduleLabel } from "@/utils/tripDate";
 import { router } from "expo-router";
@@ -24,6 +25,7 @@ export default function MyTripsScreen() {
   const usuario = useAuthStore((state) => state.usuario);
   const viajes = useViajesStore((state) => state.viajes);
   const solicitudes = useSolicitudesStore((state) => state.solicitudes);
+  const getOrCreateChat = useChatStore((state) => state.getOrCreateChat);
 
   const resenas = useResenasStore((state) => state.resenas);
   const crearResena = useResenasStore((state) => state.crearResena);
@@ -304,11 +306,36 @@ export default function MyTripsScreen() {
               )}
 
               {usuario?.rol === 1 && filtro === "disponible" && (
-                <View style={styles.infoBox}>
-                  <Text style={styles.infoText}>
-                    Tu solicitud fue aprobada. Este viaje está programado.
-                  </Text>
-                </View>
+                <>
+                  <View style={styles.infoBox}>
+                    <Text style={styles.infoText}>
+                      Tu solicitud fue aprobada. Este viaje está programado.
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.btnChat}
+                    onPress={() => {
+                      const chat = getOrCreateChat(
+                        usuario.id,
+                        item.conductor_id,
+                        item.id,
+                      );
+
+                      router.push({
+                        pathname: "/(app)/chats/[id]",
+                        params: {
+                          id: chat.id,
+                        },
+                      });
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.btnChatText}>
+                      Enviar mensaje al conductor
+                    </Text>
+                  </TouchableOpacity>
+                </>
               )}
 
               {usuario?.rol === 1 && filtro === "en curso" && (
@@ -537,5 +564,20 @@ const styles = StyleSheet.create({
     color: "#6f8fa5",
     fontSize: 13,
     fontWeight: "600",
+  },
+  btnChat: {
+    marginTop: 10,
+    backgroundColor: "#dceef9",
+    paddingVertical: 13,
+    borderRadius: 30,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#1a3a5c",
+  },
+
+  btnChatText: {
+    color: "#1a3a5c",
+    fontWeight: "800",
+    fontSize: 14,
   },
 });
