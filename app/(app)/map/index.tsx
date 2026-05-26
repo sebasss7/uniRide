@@ -9,6 +9,7 @@ import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
 
 import { getPlaceDetails } from "@/services/googleMaps";
+import { router } from "expo-router";
 
 const MapScreen = () => {
   const { lastKnownLocation, getLocation } = useLocationStore();
@@ -128,6 +129,8 @@ const MapScreen = () => {
         onConfirmLocation={handleConfirmLocation}
         onSearchOrigin={handleSearchOrigin}
         onSearchDestination={handleSearchDestination}
+        // onClose añadido para habilitar botón de Cancelar en el modalMap
+        onClose={() => router.back()}
       />
     </View>
   );
