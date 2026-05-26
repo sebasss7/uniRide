@@ -58,15 +58,15 @@ export default function TripDetailScreen() {
   const handleOpenConductorProfile = () => {
     if (!conductor) return;
 
-    console.log("Abrir perfil público del conductor:", conductor.id);
+    // console.log("Abrir perfil del conductor:", conductor.id);
 
-    // router.push({
-    //   pathname: "/profile/public",
-    //   params: {
-    //     id: conductor.id,
-    //   },
-    // });
-  };
+    // Usuario autenticado
+    if (conductor.id === usuario?.id) {
+      router.push("/profile");
+    } else {
+      router.push(`/user/${conductor.id}`);
+    };
+  }
 
   const total = asientos * viaje.precio;
   const puedeReservar =
@@ -204,12 +204,7 @@ export default function TripDetailScreen() {
                   <View style={styles.driverRatingRow}>
                     <Text style={styles.driverStar}>★</Text>
                     <Text style={styles.driverRatingText}>{rating}</Text>
-                    <Text
-                      style={styles.driverProfileText}
-                      onPress={() => router.push(`/user/${conductor.id}`)}
-                    >
-                      Ver perfil
-                    </Text>
+                    <Text style={styles.driverProfileText}>Ver perfil</Text>
                   </View>
                 </View>
               </View>
