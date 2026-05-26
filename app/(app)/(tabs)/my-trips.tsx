@@ -1,14 +1,16 @@
+import ReviewModal from "@/components/trips/reviewModal";
 import TripCard from "@/components/trips/tripCard";
 import { usersMock } from "@/mock/users";
 import { useAuthStore } from "@/store/authStore";
 import { useViajesStore } from "@/store/realTripStore";
-
+import { useResenasStore } from "@/store/resenasStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
 import { Usuario, Viaje } from "@/types";
 import { getEffectiveTripStatus, getTripScheduleLabel } from "@/utils/tripDate";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -22,6 +24,11 @@ export default function MyTripsScreen() {
   const usuario = useAuthStore((state) => state.usuario);
   const viajes = useViajesStore((state) => state.viajes);
   const solicitudes = useSolicitudesStore((state) => state.solicitudes);
+
+  const resenas = useResenasStore((state) => state.resenas);
+  const crearResena = useResenasStore((state) => state.crearResena);
+
+  const [viajeParaResena, setViajeParaResena] = useState<Viaje | null>(null);
 
   const finalizarViaje = useViajesStore((state) => state.finalizarViaje);
   const sincronizarEstados = useViajesStore(
@@ -118,6 +125,70 @@ export default function MyTripsScreen() {
           { label: "Completados", value: "completado" as const },
         ];
 
+  const getResenaDelViaje = (viajeId: string) => {
+    if (!usuario) return undefined;
+
+    return resenas.find(
+      (resena) =>
+        resena.viaje_id === viajeId && resena.pasajero_id === usuario.id,
+    );
+  };
+
+  const handleEnviarResena = (puntuacion: number, comentario: string) => {
+    if (!usuario || !viajeParaResena) return;
+
+    if (usuario.rol !== 1) {
+      Alert.alert("No disponible", "Solo los pasajeros pueden dejar reseñas.");
+      return;
+    }
+
+    const solicitudAprobada = solicitudes.some(
+      (solicitud) =>
+        solicitud.viaje_id === viajeParaResena.id &&
+        solicitud.pasajero_id === usuario.id &&
+        solicitud.estado === "aprobado",
+    );
+
+    if (!solicitudAprobada) {
+      Alert.alert(
+        "No disponible",
+        "Solo puedes reseñar viajes en los que participaste.",
+      );
+      return;
+    }
+
+    if (viajeParaResena.estado_viaje !== "completado") {
+      Alert.alert(
+        "Viaje no finalizado",
+        "Solo puedes reseñar un viaje cuando el conductor lo haya finalizado.",
+      );
+      return;
+    }
+
+    const creada = crearResena({
+      viaje_id: viajeParaResena.id,
+      conductor_id: viajeParaResena.conductor_id,
+      pasajero_id: usuario.id,
+      puntuacion,
+      comentario,
+    });
+
+    if (!creada) {
+      Alert.alert(
+        "Reseña existente",
+        "Ya calificaste este viaje anteriormente.",
+      );
+      return;
+    }
+
+    setViajeParaResena(null);
+
+    Alert.alert(
+      "Reseña enviada",
+      "Gracias por compartir tu experiencia con el conductor.",
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Mis viajes</Text>
@@ -152,6 +223,10 @@ export default function MyTripsScreen() {
         }
         renderItem={({ item }) => {
           const conductor = getConductor(item.conductor_id);
+          const resenaExistente = resenas.find(
+            (resena) =>
+              resena.viaje_id === item.id && resena.pasajero_id === usuario?.id,
+          );
 
           if (!conductor) return null;
 
@@ -242,16 +317,58 @@ export default function MyTripsScreen() {
                 </View>
               )}
 
-              {usuario?.rol === 1 && filtro === "completado" && (
-                <View style={styles.infoBox}>
-                  <Text style={styles.infoText}>
-                    Este viaje fue completado.
-                  </Text>
-                </View>
-              )}
+              {usuario?.rol === 1 &&
+                filtro === "completado" &&
+                item.estado_viaje === "completado" && (
+                  <>
+                    <View style={styles.infoBox}>
+                      <Text style={styles.infoText}>
+                        Este viaje fue completado.
+                      </Text>
+                    </View>
+
+                    {resenaExistente ? (
+                      <View style={styles.reviewDoneBox}>
+                        <Text style={styles.reviewDoneTitle}>
+                          Calificaste este viaje
+                        </Text>
+
+                        <Text style={styles.reviewStars}>
+                          {"★".repeat(resenaExistente.puntuacion)}
+                          {"☆".repeat(5 - resenaExistente.puntuacion)}
+                        </Text>
+
+                        <Text style={styles.reviewComment}>
+                          {resenaExistente.comentario}
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.btnReview}
+                        onPress={() => setViajeParaResena(item)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.btnReviewText}>
+                          Dejar reseña al conductor
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
             </View>
           );
         }}
+      />
+      <ReviewModal
+        visible={!!viajeParaResena}
+        viaje={viajeParaResena}
+        conductorNombre={
+          viajeParaResena
+            ? getConductor(viajeParaResena.conductor_id)?.nombre
+            : undefined
+        }
+        onClose={() => setViajeParaResena(null)}
+        onEnviar={handleEnviarResena}
       />
     </View>
   );
@@ -379,5 +496,46 @@ const styles = StyleSheet.create({
     color: "#1a3a5c",
     fontWeight: "700",
     fontSize: 13,
+  },
+  btnReview: {
+    marginTop: 10,
+    backgroundColor: "#1a3a5c",
+    paddingVertical: 13,
+    borderRadius: 30,
+    alignItems: "center",
+  },
+
+  btnReviewText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  reviewDoneBox: {
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 14,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#d0e4f0",
+  },
+
+  reviewDoneTitle: {
+    color: "#1a3a5c",
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 6,
+  },
+
+  reviewStars: {
+    color: "#f2b705",
+    fontSize: 20,
+    marginBottom: 6,
+  },
+
+  reviewComment: {
+    color: "#6f8fa5",
+    fontSize: 13,
+    fontWeight: "600",
   },
 });
