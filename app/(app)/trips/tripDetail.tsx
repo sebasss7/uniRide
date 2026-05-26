@@ -251,6 +251,8 @@ export default function TripDetailScreen() {
             style={styles.seatButton}
             onPress={disminuirAsientos}
             activeOpacity={0.8}
+            accessibilityLabel="Quitar"
+            accessibilityRole="button"
           >
             <Minus size={18} color="#1a3a5c" />
           </TouchableOpacity>
@@ -261,6 +263,8 @@ export default function TripDetailScreen() {
             style={styles.seatButton}
             onPress={aumentarAsientos}
             activeOpacity={0.8}
+            accessibilityLabel="Agregar"
+            accessibilityRole="button"
           >
             <Plus size={18} color="#1a3a5c" />
           </TouchableOpacity>
