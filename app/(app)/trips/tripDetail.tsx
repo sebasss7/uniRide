@@ -3,7 +3,7 @@ import { useViajesStore } from "@/store/realTripStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
 import { getTripScheduleLabel } from "@/utils/tripDate";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronRight, Minus, Plus } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   Alert,
@@ -172,6 +172,14 @@ export default function TripDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.btnVolver}
+        onPress={() => router.back()}
+        accessibilityLabel="Regresar"
+        accessibilityRole="button"
+      >
+        <ChevronLeft size={24} color="#1a3a5c" />
+      </TouchableOpacity>
       <Text style={styles.title}>Detalle del viaje</Text>
 
       <View style={styles.card}>
@@ -246,6 +254,8 @@ export default function TripDetailScreen() {
             style={styles.seatButton}
             onPress={disminuirAsientos}
             activeOpacity={0.8}
+            accessibilityLabel="Quitar"
+            accessibilityRole="button"
           >
             <Minus size={18} color="#1a3a5c" />
           </TouchableOpacity>
@@ -256,6 +266,8 @@ export default function TripDetailScreen() {
             style={styles.seatButton}
             onPress={aumentarAsientos}
             activeOpacity={0.8}
+            accessibilityLabel="Agregar"
+            accessibilityRole="button"
           >
             <Plus size={18} color="#1a3a5c" />
           </TouchableOpacity>
@@ -298,6 +310,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f4f8fb",
     padding: 16,
+  },
+
+  btnVolver: {
+    position: "absolute",
+    top: 56,
+    left: 16,
+    zIndex: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#1a3a5c",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
 
   center: {

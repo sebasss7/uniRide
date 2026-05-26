@@ -86,7 +86,12 @@ export default function ChatPrivateScreen() {
         >
             <SafeAreaView style={styles.inner}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        style={styles.iconButton}
+                        accessibilityLabel="Regresar a la lista de chats"
+                        accessibilityRole="button"
+                    >
                         <ArrowLeft size={24} color="#000000" />
                     </TouchableOpacity>
 
@@ -110,10 +115,21 @@ export default function ChatPrivateScreen() {
                     </TouchableOpacity>
 
                     <View style={styles.actionsContainer}>
-                        <TouchableOpacity style={styles.iconButton}>
+                        {/* TouchableOpacity con accesibilidad */}
+                        <TouchableOpacity
+                            style={styles.iconButton}
+                            accessibilityLabel="Bloquear usuario"
+                            accessibilityRole="button"
+                        >
                             <Ban size={22} color="#000000" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
+
+                        {/* TouchableOpacity con accesibilidad */}
+                        <TouchableOpacity
+                            style={styles.iconButton}
+                            accessibilityLabel="Más opciones"
+                            accessibilityRole="button"
+                        >
                             <MoreVertical size={24} color="#000000" />
                         </TouchableOpacity>
                     </View>
@@ -136,7 +152,13 @@ export default function ChatPrivateScreen() {
                         placeholder="Escribe un mensaje"
                         placeholderTextColor="#7a9bb5"
                     />
-                    <TouchableOpacity style={styles.sendButton}>
+
+                    {/* TouchableOpacity con accesibilidad */}
+                    <TouchableOpacity
+                        style={styles.sendButton}
+                        accessibilityLabel="Enviar mensaje"
+                        accessibilityRole="button"
+                    >
                         <Send size={20} color="#000" />
                     </TouchableOpacity>
                 </View>

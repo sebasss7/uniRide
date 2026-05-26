@@ -127,6 +127,8 @@ export default function PerfilScreen() {
                                 </Text>
                             </View>
                         )}
+
+                        {/* TouchableOpacity con accesibilidad */}
                         <TouchableOpacity
                             style={[
                                 styles.verificadoBadge,
@@ -136,6 +138,9 @@ export default function PerfilScreen() {
                             ]}
                             onPress={() => !usuario.verificado && setModalVerificarVisible(true)}
                             activeOpacity={usuario.verificado ? 1 : 0.7}
+                            accessibilityLabel={usuario.verificado ? "Perfil verificado" : "Verificar perfil"}
+                            accessibilityRole='button'
+
                         >
                             {usuario.verificado ? (
                                 <BadgeCheck
@@ -187,10 +192,14 @@ export default function PerfilScreen() {
                 <View style={styles.divider} />
 
                 <View style={styles.section}>
+
+                    {/* TouchableOpacity con accesibilidad */}
                     <TouchableOpacity
                         style={styles.vehiculosHeader}
                         onPress={() => handleAbrirVehiculo()}
                         activeOpacity={0.8}
+                        accessibilityLabel='Añadir vehículo'
+                        accessibilityRole='button'
                     >
                         <Text style={styles.sectionTitle}>Vehículos</Text>
                         <PlusCircle style={styles.addIcon} size={20} color="#1a3a5c" />
@@ -209,6 +218,8 @@ export default function PerfilScreen() {
                                 <TouchableOpacity
                                     onPress={() => handleAbrirVehiculo(v)}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    accessibilityLabel='Editar información del vehículo'
+                                    accessibilityRole='button'
                                 >
                                     <Pencil size={16} color="#1a3a5c" />
                                 </TouchableOpacity>

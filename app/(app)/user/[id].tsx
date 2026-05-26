@@ -46,7 +46,12 @@ export default function PublicProfileScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <TouchableOpacity style={styles.btnVolver} onPress={() => router.back()}>
+            <TouchableOpacity
+                style={styles.btnVolver}
+                onPress={() => router.back()}
+                accessibilityLabel="Regresar"
+                accessibilityRole="button"
+            >
                 <ChevronLeft size={24} color="#1a3a5c" />
             </TouchableOpacity>
 

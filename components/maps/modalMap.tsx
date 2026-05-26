@@ -16,6 +16,7 @@ import {
 
 interface Props {
   visible: boolean;
+  onClose: () => void;
 
   origen: Place | null;
   destino: Place | null;
@@ -43,6 +44,7 @@ export default function TripModal({
   onConfirmLocation,
   onSearchOrigin,
   onSearchDestination,
+  onClose
 }: Props) {
   const [originText, setOriginText] = useState("");
   const [destinationText, setDestinationText] = useState("");
@@ -169,6 +171,13 @@ export default function TripModal({
               >
                 <Text style={styles.btnText}>Continuar</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onClose}
+                accessibilityLabel="Cancelar y cerrar mapa"
+                accessibilityRole="button">
+                <Text style={styles.close}>Cancelar</Text>
+              </TouchableOpacity>
             </>
           ) : (
             <>
@@ -196,6 +205,13 @@ export default function TripModal({
                 onPress={onConfirmLocation}
               >
                 <Text style={styles.btnText}>Confirmar selección</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onClose}
+                accessibilityLabel="Cancelar y cerrar mapa"
+                accessibilityRole="button">
+                <Text style={styles.close}>Cancelar</Text>
               </TouchableOpacity>
             </>
           )}
