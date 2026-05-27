@@ -4,13 +4,14 @@ import { useChatStore } from "@/store/useChatStore";
 import { Mensaje } from "@/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Ban, MoreVertical, Send } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     FlatList,
     Image,
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -35,6 +36,8 @@ export default function ChatPrivateScreen() {
   );
 
   const [mensajeText, setMensajeText] = useState("");
+
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const chat = useMemo(() => {
     return chats.find((item) => item.id === id);
@@ -101,7 +104,7 @@ export default function ChatPrivateScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView style={styles.inner}>
         <View style={styles.header}>
@@ -165,6 +168,11 @@ export default function ChatPrivateScreen() {
             value={mensajeText}
             onChangeText={setMensajeText}
             multiline
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 300);
+            }}
           />
 
           <TouchableOpacity

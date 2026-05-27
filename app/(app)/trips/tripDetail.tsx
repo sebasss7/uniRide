@@ -4,10 +4,12 @@ import { useSolicitudesStore } from "@/store/tripRequestStore";
 import { getTripScheduleLabel } from "@/utils/tripDate";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronRight, Minus, Plus } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -47,6 +49,8 @@ export default function TripDetailScreen() {
   const [asientos, setAsientos] = useState(1);
   const [mensaje, setMensaje] = useState("");
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   if (!viaje) {
     return (
       <View style={styles.center}>
@@ -64,9 +68,6 @@ export default function TripDetailScreen() {
   const handleOpenConductorProfile = () => {
     if (!conductor) return;
 
-    // console.log("Abrir perfil del conductor:", conductor.id);
-
-    // Usuario autenticado
     if (conductor.id === usuario?.id) {
       router.push("/profile");
     } else {
@@ -172,148 +173,172 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Detalle del viaje</Text>
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingContainer}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Detalle del viaje</Text>
 
-      <View style={styles.card}>
-        {conductor && (
-          <>
-            <Text style={styles.label}>Conductor</Text>
+        <View style={styles.card}>
+          {conductor && (
+            <>
+              <Text style={styles.label}>Conductor</Text>
 
-            <TouchableOpacity
-              style={styles.driverCard}
-              onPress={handleOpenConductorProfile}
-              activeOpacity={0.8}
-            >
-              <View style={styles.driverMain}>
-                {conductor.imagen_usuario ? (
-                  <Image
-                    source={{ uri: conductor.imagen_usuario }}
-                    style={styles.driverAvatar}
-                  />
-                ) : (
-                  <View style={styles.driverAvatarFallback}>
-                    <Text style={styles.driverAvatarInitial}>
-                      {conductor.nombre.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+              <TouchableOpacity
+                style={styles.driverCard}
+                onPress={handleOpenConductorProfile}
+                activeOpacity={0.8}
+              >
+                <View style={styles.driverMain}>
+                  {conductor.imagen_usuario ? (
+                    <Image
+                      source={{ uri: conductor.imagen_usuario }}
+                      style={styles.driverAvatar}
+                    />
+                  ) : (
+                    <View style={styles.driverAvatarFallback}>
+                      <Text style={styles.driverAvatarInitial}>
+                        {conductor.nombre.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
 
-                <View style={styles.driverInfo}>
-                  <Text style={styles.driverName}>{conductor.nombre}</Text>
+                  <View style={styles.driverInfo}>
+                    <Text style={styles.driverName}>{conductor.nombre}</Text>
 
-                  <View style={styles.driverRatingRow}>
-                    <Text style={styles.driverStar}>★</Text>
-                    <Text style={styles.driverRatingText}>{rating}</Text>
-                    <Text style={styles.driverProfileText}>Ver perfil</Text>
+                    <View style={styles.driverRatingRow}>
+                      <Text style={styles.driverStar}>★</Text>
+                      <Text style={styles.driverRatingText}>{rating}</Text>
+                      <Text style={styles.driverProfileText}>Ver perfil</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
 
-              <ChevronRight size={20} color="#6f8fa5" />
-            </TouchableOpacity>
+                <ChevronRight size={20} color="#6f8fa5" />
+              </TouchableOpacity>
 
-            <View style={styles.divider} />
-          </>
+              <View style={styles.divider} />
+            </>
+          )}
+
+          <Text style={styles.label}>Origen</Text>
+          <Text style={styles.value}>{viaje.origen}</Text>
+
+          <Text style={styles.label}>Destino</Text>
+          <Text style={styles.value}>{viaje.destino}</Text>
+
+          <Text style={styles.label}>Horario</Text>
+          <Text style={styles.value}>{getTripScheduleLabel(viaje)}</Text>
+
+          <View style={styles.divider} />
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.labelNoMargin}>Precio por asiento</Text>
+            <Text style={styles.price}>${viaje.precio}</Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.labelNoMargin}>Asientos disponibles</Text>
+            <Text style={styles.valueSmall}>{viaje.asientos_disponibles}</Text>
+          </View>
+        </View>
+
+        {!solicitudExistente && puedeReservar && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Reservar asientos</Text>
+
+            <View style={styles.seatSelector}>
+              <TouchableOpacity
+                style={styles.seatButton}
+                onPress={disminuirAsientos}
+                activeOpacity={0.8}
+              >
+                <Minus size={18} color="#1a3a5c" />
+              </TouchableOpacity>
+
+              <Text style={styles.seatNumber}>{asientos}</Text>
+
+              <TouchableOpacity
+                style={styles.seatButton}
+                onPress={aumentarAsientos}
+                activeOpacity={0.8}
+              >
+                <Plus size={18} color="#1a3a5c" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.totalBox}>
+              <Text style={styles.totalLabel}>Total a pagar</Text>
+              <Text style={styles.totalValue}>${total}</Text>
+            </View>
+
+            <Text style={styles.messageLabel}>Mensaje para el conductor</Text>
+
+            <TextInput
+              style={styles.messageInput}
+              placeholder="Ej. Hola, ¿podrías recogerme cerca de la entrada principal?"
+              placeholderTextColor="#7a9bb5"
+              value={mensaje}
+              onChangeText={setMensaje}
+              multiline
+              maxLength={180}
+              textAlignVertical="top"
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 300);
+              }}
+            />
+
+            <Text style={styles.messageCounter}>{mensaje.length}/180</Text>
+          </View>
         )}
 
-        <Text style={styles.label}>Origen</Text>
-        <Text style={styles.value}>{viaje.origen}</Text>
-
-        <Text style={styles.label}>Destino</Text>
-        <Text style={styles.value}>{viaje.destino}</Text>
-
-        <Text style={styles.label}>Horario</Text>
-        <Text style={styles.value}>{getTripScheduleLabel(viaje)}</Text>
-
-        <View style={styles.divider} />
-
-        <View style={styles.rowBetween}>
-          <Text style={styles.labelNoMargin}>Precio por asiento</Text>
-          <Text style={styles.price}>${viaje.precio}</Text>
-        </View>
-
-        <View style={styles.rowBetween}>
-          <Text style={styles.labelNoMargin}>Asientos disponibles</Text>
-          <Text style={styles.valueSmall}>{viaje.asientos_disponibles}</Text>
-        </View>
-      </View>
-
-      {!solicitudExistente && puedeReservar && (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Reservar asientos</Text>
-
-          <View style={styles.seatSelector}>
-            <TouchableOpacity
-              style={styles.seatButton}
-              onPress={disminuirAsientos}
-              activeOpacity={0.8}
-            >
-              <Minus size={18} color="#1a3a5c" />
-            </TouchableOpacity>
-
-            <Text style={styles.seatNumber}>{asientos}</Text>
-
-            <TouchableOpacity
-              style={styles.seatButton}
-              onPress={aumentarAsientos}
-              activeOpacity={0.8}
-            >
-              <Plus size={18} color="#1a3a5c" />
-            </TouchableOpacity>
+        {solicitudExistente && (
+          <View style={styles.statusBox}>
+            <Text style={styles.statusText}>{getSolicitudText()}</Text>
           </View>
+        )}
 
-          <View style={styles.totalBox}>
-            <Text style={styles.totalLabel}>Total a pagar</Text>
-            <Text style={styles.totalValue}>${total}</Text>
-          </View>
-
-          <Text style={styles.messageLabel}>Mensaje para el conductor</Text>
-
-          <TextInput
-            style={styles.messageInput}
-            placeholder="Ej. Hola, ¿podrías recogerme cerca de la entrada principal?"
-            placeholderTextColor="#7a9bb5"
-            value={mensaje}
-            onChangeText={setMensaje}
-            multiline
-            maxLength={180}
-            textAlignVertical="top"
-          />
-
-          <Text style={styles.messageCounter}>{mensaje.length}/180</Text>
-        </View>
-      )}
-
-      {solicitudExistente && (
-        <View style={styles.statusBox}>
-          <Text style={styles.statusText}>{getSolicitudText()}</Text>
-        </View>
-      )}
-
-      {(!solicitudExistente || solicitudExistente.estado === "denegado") && (
-        <TouchableOpacity
-          style={[styles.btnReservar, !puedeReservar && styles.btnDisabled]}
-          onPress={handleReservar}
-          disabled={!puedeReservar}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnReservarText}>
-            {solicitudExistente?.estado === "denegado"
-              ? "Enviar nueva solicitud"
-              : "Reservar viaje"}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        {(!solicitudExistente || solicitudExistente.estado === "denegado") && (
+          <TouchableOpacity
+            style={[styles.btnReservar, !puedeReservar && styles.btnDisabled]}
+            onPress={handleReservar}
+            disabled={!puedeReservar}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.btnReservarText}>
+              {solicitudExistente?.estado === "denegado"
+                ? "Enviar nueva solicitud"
+                : "Reservar viaje"}
+            </Text>
+          </TouchableOpacity>
+        )}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardAvoidingContainer: {
     flex: 1,
     backgroundColor: "#f4f8fb",
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 16,
+    paddingBottom: 32,
   },
 
   center: {
@@ -457,11 +482,11 @@ const styles = StyleSheet.create({
   },
 
   btnReservar: {
-    marginTop: "auto",
     backgroundColor: "#1a3a5c",
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: "center",
+    marginTop: 4,
   },
 
   btnDisabled: {
@@ -547,6 +572,7 @@ const styles = StyleSheet.create({
     color: "#6f8fa5",
     fontWeight: "700",
   },
+
   messageLabel: {
     fontSize: 13,
     fontWeight: "700",
@@ -571,5 +597,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     marginTop: 4,
+  },
+
+  bottomSpacer: {
+    height: 16,
   },
 });
