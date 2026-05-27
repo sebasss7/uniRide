@@ -1,5 +1,3 @@
-// store/useChatStore.ts
-
 import { chatsMock } from "@/mock/chats";
 import { mensajesMock } from "@/mock/messages";
 import { Chat, Mensaje } from "@/types";
