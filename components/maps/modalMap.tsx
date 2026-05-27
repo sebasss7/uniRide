@@ -18,20 +18,18 @@ import {
 
 interface Props {
   visible: boolean;
-
   origen: Place | null;
   destino: Place | null;
-
   step: "form" | "selectingOrigin" | "selectingDestination";
-
   tempLocation: LatLng | null;
+  tempPlace: Place | null;
+  isResolvingLocation: boolean;
 
   onSelectOrigin: () => void;
   onSelectDestination: () => void;
-
   onConfirmLocation: () => void;
-  onSearchOrigin: (text: string) => void;
-  onSearchDestination: (text: string) => void;
+  onSearchOrigin: (placeId: string) => void;
+  onSearchDestination: (placeId: string) => void;
 }
 
 export default function TripModal({
@@ -40,6 +38,8 @@ export default function TripModal({
   destino,
   step,
   tempLocation,
+  tempPlace,
+  isResolvingLocation,
   onSelectOrigin,
   onSelectDestination,
   onConfirmLocation,
@@ -91,6 +91,18 @@ export default function TripModal({
       hideSub.remove();
     };
   }, [keyboardOffset]);
+
+  const getPlaceLabel = (place: Place | null) => {
+    if (!place) return "";
+
+    if (place.name) return place.name;
+
+    return place.address
+      .split(",")
+      .map((part) => part.trim())
+      .slice(0, 2)
+      .join(", ");
+  };
 
   useEffect(() => {
     setOriginText(origen?.address || "");
@@ -222,19 +234,34 @@ export default function TripModal({
               </Text>
 
               <View style={styles.selectedBox}>
-                <Text>
-                  {tempLocation
-                    ? `${tempLocation.latitude}, ${tempLocation.longitude}`
-                    : "Aún no seleccionas un punto"}
+                <Text style={styles.selectedLabel}>
+                  {step === "selectingOrigin"
+                    ? "Origen seleccionado"
+                    : "Destino seleccionado"}
+                </Text>
+
+                <Text style={styles.selectedText}>
+                  {isResolvingLocation
+                    ? "Buscando ubicación..."
+                    : tempPlace
+                      ? getPlaceLabel(tempPlace)
+                      : tempLocation
+                        ? "No se encontró una dirección para este punto."
+                        : "Aún no seleccionas un punto."}
                 </Text>
               </View>
 
               <TouchableOpacity
-                style={[styles.btn, !tempLocation && { opacity: 0.5 }]}
-                disabled={!tempLocation}
+                style={[
+                  styles.btn,
+                  (!tempPlace || isResolvingLocation) && { opacity: 0.5 },
+                ]}
+                disabled={!tempPlace || isResolvingLocation}
                 onPress={onConfirmLocation}
               >
-                <Text style={styles.btnText}>Confirmar selección</Text>
+                <Text style={styles.btnText}>
+                  {isResolvingLocation ? "Buscando..." : "Confirmar selección"}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -367,5 +394,18 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 14,
     color: "#1a3a5c",
+  },
+  selectedLabel: {
+    fontSize: 12,
+    color: "#6f8fa5",
+    fontWeight: "700",
+    marginBottom: 5,
+  },
+
+  selectedText: {
+    fontSize: 14,
+    color: "#1a3a5c",
+    fontWeight: "700",
+    lineHeight: 20,
   },
 });
