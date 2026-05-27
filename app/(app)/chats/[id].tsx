@@ -110,7 +110,7 @@ export default function ChatPrivateScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView style={styles.inner}>
         <View style={styles.header}>
@@ -186,6 +186,11 @@ export default function ChatPrivateScreen() {
             value={mensajeText}
             onChangeText={setMensajeText}
             multiline
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 300);
+            }}
           />
 
           <TouchableOpacity
