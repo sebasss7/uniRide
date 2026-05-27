@@ -1,13 +1,13 @@
 import DatePickerModal from "@/components/trips/datePickerModal";
 import PostTripModal from "@/components/trips/postTripModal";
 import TripCard from "@/components/trips/tripCard";
-import { tripsMock } from "@/mock/trips";
 import { usersMock } from "@/mock/users";
 import { vehiclesMock } from "@/mock/vehicles";
 import { useAuthStore } from "@/store/authStore";
 import { useViajesStore } from "@/store/realTripStore";
 import { useTripStore } from "@/store/tripStore";
 import { Viaje } from "@/types";
+import { Place } from "@/types/place";
 import { router } from "expo-router";
 import {
   AlarmClock,
@@ -28,18 +28,79 @@ import {
   View,
 } from "react-native";
 
+interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
+const toRad = (value: number) => (value * Math.PI) / 180;
+
+const getDistanceInMeters = (pointA: Coordinate, pointB: Coordinate) => {
+  const earthRadius = 6371000;
+
+  const latitudeDistance = toRad(pointB.latitude - pointA.latitude);
+  const longitudeDistance = toRad(pointB.longitude - pointA.longitude);
+
+  const latitudeA = toRad(pointA.latitude);
+  const latitudeB = toRad(pointB.latitude);
+
+  const result =
+    Math.sin(latitudeDistance / 2) ** 2 +
+    Math.cos(latitudeA) *
+      Math.cos(latitudeB) *
+      Math.sin(longitudeDistance / 2) ** 2;
+
+  return 2 * earthRadius * Math.atan2(Math.sqrt(result), Math.sqrt(1 - result));
+};
+
 export default function homeScreen() {
   const usuario = useAuthStore((state) => state.usuario);
 
   const tieneVehiculos = vehiclesMock.some((v) => v.usuario_id === usuario?.id);
 
-  const [viajes, setViajes] = useState<Viaje[]>(() => tripsMock);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { origen, destino } = useTripStore();
+  const { origen, destino, clearTrip } = useTripStore();
 
   const realtrips = useViajesStore((state) => state.viajes);
   const addTrip = useViajesStore((state) => state.addViaje);
+
+  const RADIO_BUSQUEDA_METROS = 10000;
+
+  const [busquedaAplicada, setBusquedaAplicada] =
+    useState<FiltrosBusqueda | null>(null);
+
+  const viajesDisponibles = useMemo(() => {
+    return realtrips.filter((viaje) => {
+      return viaje.estado_viaje === "disponible";
+    });
+  }, [realtrips]);
+
+  const viajesMostrados = useMemo(() => {
+    if (!busquedaAplicada) {
+      return viajesDisponibles;
+    }
+
+    return viajesDisponibles.filter((viaje) => {
+      const coincideOrigen =
+        !busquedaAplicada.origen ||
+        getDistanceInMeters(busquedaAplicada.origen, viaje.origenCoords) <=
+          RADIO_BUSQUEDA_METROS;
+
+      const coincideDestino =
+        !busquedaAplicada.destino ||
+        getDistanceInMeters(busquedaAplicada.destino, viaje.destinoCoords) <=
+          RADIO_BUSQUEDA_METROS;
+
+      const coincideFecha =
+        !busquedaAplicada.fecha || viaje.fecha === busquedaAplicada.fecha;
+
+      const coincideHora =
+        !busquedaAplicada.hora || viaje.hora_salida === busquedaAplicada.hora;
+
+      return coincideOrigen && coincideDestino && coincideFecha && coincideHora;
+    });
+  }, [viajesDisponibles, busquedaAplicada]);
 
   // date picker
   const [fecha, setFecha] = useState<Date | null>(null);
@@ -55,43 +116,24 @@ export default function homeScreen() {
   const formatHora = (date: Date) => {
     return date.toTimeString().slice(0, 5); // HH:mm
   };
-  const [filtrOrigen, setFiltroOrigen] = useState("");
-  const [filtroDestino, setFiltroDestino] = useState("");
-  const [filtroFecha, setFiltroFecha] = useState("");
-  const [filtroHora, setFiltroHora] = useState("");
   const [filtrosAplicados, setFiltrosAplicados] = useState(false);
 
-  const viajesFiltrados = useMemo(() => {
-    if (!filtrosAplicados)
-      return viajes.filter((v) => v.estado_viaje === "disponible");
-
-    return viajes.filter((v) => {
-      const matchOrigen = filtrOrigen
-        ? v.origen.toLowerCase().includes(filtrOrigen.toLowerCase())
-        : true;
-      const matchDestino = filtroDestino
-        ? v.destino.toLowerCase().includes(filtroDestino.toLowerCase())
-        : true;
-      const matchFecha = filtroFecha ? v.fecha === filtroFecha : true;
-      const matchHora = filtroHora ? v.hora_salida === filtroHora : true;
-      return (
-        matchOrigen &&
-        matchDestino &&
-        matchFecha &&
-        matchHora &&
-        v.estado_viaje === "disponible"
-      );
-    });
-  }, [
-    viajes,
-    filtrosAplicados,
-    filtrOrigen,
-    filtroDestino,
-    filtroFecha,
-    filtroHora,
-  ]);
-
   const handleBuscar = () => {
+    if (!origen && !destino && !fecha && !hora) {
+      Alert.alert(
+        "Sin filtros",
+        "Selecciona al menos un origen, destino, fecha u hora para buscar.",
+      );
+      return;
+    }
+
+    setBusquedaAplicada({
+      origen,
+      destino,
+      fecha: fecha ? formatFecha(fecha) : null,
+      hora: hora ? formatHora(hora) : null,
+    });
+
     setFiltrosAplicados(true);
   };
 
@@ -100,19 +142,16 @@ export default function homeScreen() {
   );
 
   const handleLimpiar = () => {
-    setFiltroOrigen("");
-    setFiltroDestino("");
-    setFiltroFecha("");
-    setFiltroHora("");
-    setFiltrosAplicados(false);
-  };
+    clearTrip();
 
-  const handlePublicar = (nuevoViaje: Omit<Viaje, "id">) => {
-    const viaje: Viaje = {
-      ...nuevoViaje,
-      id: String(Date.now()),
-    };
-    setViajes((prev) => [viaje, ...prev]);
+    setFecha(null);
+    setHora(null);
+
+    setShowDatePicker(false);
+    setShowTimePicker(false);
+
+    setBusquedaAplicada(null);
+    setFiltrosAplicados(false);
   };
 
   const handlePublicarViaje = (viajeData: Omit<Viaje, "id">) => {
@@ -132,10 +171,17 @@ export default function homeScreen() {
   const getConductor = (conductor_id: string) =>
     usersMock.find((u) => u.id === conductor_id) ?? usersMock[0];
 
+  interface FiltrosBusqueda {
+    origen: Place | null;
+    destino: Place | null;
+    fecha: string | null;
+    hora: string | null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={realtrips}
+        data={viajesMostrados}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -177,7 +223,6 @@ export default function homeScreen() {
                   placeholder="Punto de destino"
                   placeholderTextColor="#7a9bb5"
                   value={destino?.address || ""}
-                  onChangeText={setFiltroDestino}
                 />
               </View>
 
@@ -230,27 +275,30 @@ export default function homeScreen() {
           </>
         }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🚙</Text>
-            <Text style={styles.emptyText}>No hay viajes disponibles</Text>
-            <Text style={styles.emptySubtext}>Intenta con otros filtros</Text>
-          </View>
+          <Text style={styles.emptyText}>
+            No se encontraron viajes con estos filtros.
+          </Text>
         }
-        renderItem={({ item }) => (
-          <TripCard
-            viaje={item}
-            conductor={getConductor(item.conductor_id)}
-            onPress={() => {
-              console.log("ID enviado:", item.id);
-              router.push({
-                pathname: "/trips/tripDetail",
-                params: {
-                  id: item.id,
-                },
-              });
-            }}
-          />
-        )}
+        renderItem={({ item }) => {
+          const conductor = getConductor(item.conductor_id);
+
+          if (!conductor) return null;
+
+          return (
+            <TripCard
+              viaje={item}
+              conductor={conductor}
+              onPress={() => {
+                router.push({
+                  pathname: "/trips/tripDetail",
+                  params: {
+                    id: item.id,
+                  },
+                });
+              }}
+            />
+          );
+        }}
       />
 
       <PostTripModal
@@ -266,7 +314,6 @@ export default function homeScreen() {
         value={fecha || new Date()}
         onChange={(selectedDate) => {
           setFecha(selectedDate);
-          setFiltroFecha(formatFecha(selectedDate));
         }}
         onClose={() => setShowDatePicker(false)}
       />
@@ -287,7 +334,6 @@ export default function homeScreen() {
           }
 
           setHora(selectedDate);
-          setFiltroHora(formatHora(selectedDate));
         }}
         onClose={() => setShowTimePicker(false)}
       />
