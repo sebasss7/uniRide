@@ -103,7 +103,18 @@ export default function PostTripModal({
       return;
     }
 
-    const fechaHoraViaje = new Date(`${fecha}T${hora}:00`);
+    const [year, month, day] = fecha.split("-").map(Number);
+    const [hours, minutes] = hora.split(":").map(Number);
+
+    const fechaHoraViaje = new Date(
+      year,
+      month - 1,
+      day,
+      hours,
+      minutes,
+      0,
+      0
+    );
 
     if (Number.isNaN(fechaHoraViaje.getTime())) {
       Alert.alert(
@@ -156,6 +167,7 @@ export default function PostTripModal({
 
     onClose();
   };
+
   return (
     <Modal
       visible={visible}
@@ -298,11 +310,14 @@ export default function PostTripModal({
         visible={showTimePicker}
         mode="time"
         value={selectedDate}
+        selectedDate={selectedDate}
         onChange={(date) => {
           const updated = new Date(selectedDate);
 
           updated.setHours(date.getHours());
           updated.setMinutes(date.getMinutes());
+          updated.setSeconds(0);
+          updated.setMilliseconds(0);
 
           setSelectedDate(updated);
         }}
