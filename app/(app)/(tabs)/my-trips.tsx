@@ -7,7 +7,7 @@ import { useResenasStore } from "@/store/resenasStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
 import { useChatStore } from "@/store/useChatStore";
 import { Usuario, Viaje } from "@/types";
-import { getEffectiveTripStatus, getTripScheduleLabel } from "@/utils/tripDate";
+import { getTripScheduleLabel } from "@/utils/tripDate";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -20,6 +20,8 @@ import {
 } from "react-native";
 
 type FiltroViaje = "disponible" | "en curso" | "completado" | "pendiente";
+
+type VistaConductor = "publicados" | "reservados";
 
 export default function MyTripsScreen() {
   const usuario = useAuthStore((state) => state.usuario);
@@ -43,52 +45,48 @@ export default function MyTripsScreen() {
   }, []);
 
   const [filtro, setFiltro] = useState<FiltroViaje>("disponible");
+  const [vistaConductor, setVistaConductor] =
+    useState<VistaConductor>("publicados");
 
   const viajesFiltrados = useMemo<Viaje[]>(() => {
     if (!usuario) return [];
 
-    if (usuario.rol === 2) {
-      return viajes.filter((viaje) => {
-        const estado = getEffectiveTripStatus(viaje);
+    const filtrarViajesReservados = () => {
+      if (filtro === "pendiente") {
+        return solicitudes
+          .filter(
+            (solicitud) =>
+              solicitud.pasajero_id === usuario.id &&
+              solicitud.estado === "en espera",
+          )
+          .map((solicitud) =>
+            viajes.find((viaje) => viaje.id === solicitud.viaje_id),
+          )
+          .filter((viaje): viaje is Viaje => Boolean(viaje));
+      }
 
-        return viaje.conductor_id === usuario.id && estado === filtro;
-      });
-    }
-
-    if (usuario.rol === 1 && filtro === "pendiente") {
-      const solicitudesPendientes = solicitudes.filter(
-        (solicitud) =>
-          solicitud.pasajero_id === usuario.id &&
-          solicitud.estado === "en espera",
-      );
-
-      return solicitudesPendientes
-        .map((solicitud) =>
-          viajes.find((viaje) => viaje.id === solicitud.viaje_id),
+      return solicitudes
+        .filter(
+          (solicitud) =>
+            solicitud.pasajero_id === usuario.id &&
+            solicitud.estado === "aprobado",
         )
-        .filter((viaje): viaje is Viaje => Boolean(viaje));
-    }
-
-    if (usuario.rol === 1) {
-      const solicitudesAprobadas = solicitudes.filter(
-        (solicitud) =>
-          solicitud.pasajero_id === usuario.id &&
-          solicitud.estado === "aprobado",
-      );
-
-      return solicitudesAprobadas
         .map((solicitud) =>
           viajes.find((viaje) => viaje.id === solicitud.viaje_id),
         )
         .filter((viaje): viaje is Viaje => Boolean(viaje))
-        .filter((viaje) => {
-          const estado = getEffectiveTripStatus(viaje);
-          return estado === filtro;
-        });
+        .filter((viaje) => viaje.estado_viaje === filtro);
+    };
+
+    if (usuario.rol === 2 && vistaConductor === "publicados") {
+      return viajes.filter(
+        (viaje) =>
+          viaje.conductor_id === usuario.id && viaje.estado_viaje === filtro,
+      );
     }
 
-    return [];
-  }, [usuario?.id, usuario?.rol, viajes, solicitudes, filtro]);
+    return filtrarViajesReservados();
+  }, [usuario?.id, usuario?.rol, vistaConductor, viajes, solicitudes, filtro]);
 
   const handleIniciarViaje = (viaje: Viaje) => {
     iniciarViaje(viaje.id);
@@ -113,20 +111,26 @@ export default function MyTripsScreen() {
   const getConductor = (conductorId: string): Usuario | undefined => {
     return usersMock.find((usuario) => usuario.id === conductorId);
   };
-  const tabs =
-    usuario?.rol === 1
-      ? [
-          { label: "Pendientes", value: "pendiente" as const },
-          { label: "Programados", value: "disponible" as const },
-          { label: "En curso", value: "en curso" as const },
-          { label: "Completados", value: "completado" as const },
-        ]
-      : [
-          { label: "Programados", value: "disponible" as const },
-          { label: "En curso", value: "en curso" as const },
-          { label: "Completados", value: "completado" as const },
-        ];
 
+  const estaAdministrandoViajes =
+    usuario?.rol === 2 && vistaConductor === "publicados";
+
+  const estaViajandoComoPasajero =
+    usuario?.rol === 1 ||
+    (usuario?.rol === 2 && vistaConductor === "reservados");
+
+  const tabs: { label: string; value: FiltroViaje }[] = estaViajandoComoPasajero
+    ? [
+        { label: "Pendientes", value: "pendiente" },
+        { label: "Programados", value: "disponible" },
+        { label: "En curso", value: "en curso" },
+        { label: "Completados", value: "completado" },
+      ]
+    : [
+        { label: "Programados", value: "disponible" },
+        { label: "En curso", value: "en curso" },
+        { label: "Completados", value: "completado" },
+      ];
   const getResenaDelViaje = (viajeId: string) => {
     if (!usuario) return undefined;
 
@@ -195,6 +199,52 @@ export default function MyTripsScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Mis viajes</Text>
 
+      {usuario?.rol === 2 && (
+        <View style={styles.roleTabs}>
+          <TouchableOpacity
+            style={[
+              styles.roleTab,
+              vistaConductor === "publicados" && styles.roleTabActive,
+            ]}
+            onPress={() => {
+              setVistaConductor("publicados");
+              setFiltro("disponible");
+            }}
+            activeOpacity={0.85}
+          >
+            <Text
+              style={[
+                styles.roleTabText,
+                vistaConductor === "publicados" && styles.roleTabTextActive,
+              ]}
+            >
+              Conductor
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.roleTab,
+              vistaConductor === "reservados" && styles.roleTabActive,
+            ]}
+            onPress={() => {
+              setVistaConductor("reservados");
+              setFiltro("pendiente");
+            }}
+            activeOpacity={0.85}
+          >
+            <Text
+              style={[
+                styles.roleTabText,
+                vistaConductor === "reservados" && styles.roleTabTextActive,
+              ]}
+            >
+              Pasajero
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.tabs}>
         {tabs.map((tab) => (
           <TouchableOpacity
@@ -238,13 +288,14 @@ export default function MyTripsScreen() {
                 viaje={item}
                 conductor={conductor}
                 onPress={() => {
-                  if (usuario?.rol === 2) {
+                  if (estaAdministrandoViajes) {
                     router.push({
                       pathname: "/trips/tripsRequest",
                       params: {
                         id: String(item.id),
                       },
                     });
+
                     return;
                   }
 
@@ -261,34 +312,35 @@ export default function MyTripsScreen() {
                 {getTripScheduleLabel(item)}
               </Text>
 
-              {usuario?.rol === 2 && item.estado_viaje === "disponible" && (
-                <>
-                  <TouchableOpacity
-                    style={styles.btnSolicitudes}
-                    onPress={() => {
-                      router.push({
-                        pathname: "/trips/tripsRequest",
-                        params: {
-                          id: String(item.id),
-                        },
-                      });
-                    }}
-                  >
-                    <Text style={styles.btnSolicitudesText}>
-                      Ver solicitudes
-                    </Text>
-                  </TouchableOpacity>
+              {estaAdministrandoViajes &&
+                item.estado_viaje === "disponible" && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.btnSolicitudes}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/trips/tripsRequest",
+                          params: {
+                            id: String(item.id),
+                          },
+                        });
+                      }}
+                    >
+                      <Text style={styles.btnSolicitudesText}>
+                        Ver solicitudes
+                      </Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.btnIniciar}
-                    onPress={() => handleIniciarViaje(item)}
-                  >
-                    <Text style={styles.btnIniciarText}>Iniciar viaje</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+                    <TouchableOpacity
+                      style={styles.btnIniciar}
+                      onPress={() => handleIniciarViaje(item)}
+                    >
+                      <Text style={styles.btnIniciarText}>Iniciar viaje</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
 
-              {usuario?.rol === 2 && item.estado_viaje === "en curso" && (
+              {estaAdministrandoViajes && item.estado_viaje === "en curso" && (
                 <TouchableOpacity
                   style={styles.btnIniciar}
                   onPress={() => handleContinuarViaje(item)}
@@ -579,5 +631,32 @@ const styles = StyleSheet.create({
     color: "#1a3a5c",
     fontWeight: "800",
     fontSize: 14,
+  },
+  roleTabs: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  roleTab: {
+    flex: 1,
+    backgroundColor: "#dceef9",
+    borderRadius: 22,
+    paddingVertical: 11,
+    alignItems: "center",
+  },
+
+  roleTabActive: {
+    backgroundColor: "#1a3a5c",
+  },
+
+  roleTabText: {
+    color: "#1a3a5c",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  roleTabTextActive: {
+    color: "#fff",
   },
 });

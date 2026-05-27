@@ -76,8 +76,14 @@ export default function TripDetailScreen() {
   };
 
   const total = asientos * viaje.precio;
+
+  const esViajePropio = usuario?.id === viaje.conductor_id;
+
   const puedeReservar =
-    viaje.estado_viaje === "disponible" && viaje.asientos_disponibles > 0;
+    !!usuario &&
+    !esViajePropio &&
+    viaje.estado_viaje === "disponible" &&
+    viaje.asientos_disponibles > 0;
 
   const aumentarAsientos = () => {
     if (asientos >= viaje.asientos_disponibles) {
@@ -98,6 +104,11 @@ export default function TripDetailScreen() {
   };
 
   const handleReservar = () => {
+    if (!usuario) {
+      Alert.alert("Error", "Debes iniciar sesión para reservar.");
+      return;
+    }
+
     if (viaje.estado_viaje !== "disponible") {
       Alert.alert(
         "Viaje no disponible",
@@ -106,15 +117,10 @@ export default function TripDetailScreen() {
       return;
     }
 
-    if (!usuario) {
-      Alert.alert("Error", "Debes iniciar sesión para reservar.");
-      return;
-    }
-
-    if (usuario.rol !== 1) {
+    if (viaje.conductor_id === usuario.id) {
       Alert.alert(
-        "No disponible",
-        "Solo los pasajeros pueden reservar viajes.",
+        "No puedes reservar tu propio viaje",
+        "Puedes administrar este viaje desde la sección Mis viajes.",
       );
       return;
     }
@@ -130,7 +136,7 @@ export default function TripDetailScreen() {
     if (solicitudExistente) {
       Alert.alert(
         "Solicitud existente",
-        "Ya tienes una solicitud para este viaje.",
+        "Ya tienes una solicitud activa para este viaje.",
       );
       return;
     }
@@ -262,7 +268,8 @@ export default function TripDetailScreen() {
           </View>
         </View>
 
-        {(!solicitudExistente || solicitudExistente.estado === "denegado") &&
+        {!esViajePropio &&
+          (!solicitudExistente || solicitudExistente.estado === "denegado") &&
           puedeReservar && (
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Reservar asientos</Text>
@@ -272,8 +279,6 @@ export default function TripDetailScreen() {
                   style={styles.seatButton}
                   onPress={disminuirAsientos}
                   activeOpacity={0.8}
-                  accessibilityLabel="Quitar asiento"
-                  accessibilityRole="button"
                 >
                   <Minus size={18} color="#1a3a5c" />
                 </TouchableOpacity>
@@ -284,8 +289,6 @@ export default function TripDetailScreen() {
                   style={styles.seatButton}
                   onPress={aumentarAsientos}
                   activeOpacity={0.8}
-                  accessibilityLabel="Agregar asiento"
-                  accessibilityRole="button"
                 >
                   <Plus size={18} color="#1a3a5c" />
                 </TouchableOpacity>
@@ -307,16 +310,20 @@ export default function TripDetailScreen() {
                 multiline
                 maxLength={180}
                 textAlignVertical="top"
-                onFocus={() => {
-                  setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
-                  }, 300);
-                }}
               />
 
               <Text style={styles.messageCounter}>{mensaje.length}/180</Text>
             </View>
           )}
+
+        {esViajePropio && (
+          <View style={styles.statusBox}>
+            <Text style={styles.statusText}>
+              Este viaje fue publicado por ti. Puedes administrarlo desde Mis
+              viajes.
+            </Text>
+          </View>
+        )}
 
         {solicitudExistente && solicitudExistente.estado !== "denegado" && (
           <View style={styles.statusBox}>
