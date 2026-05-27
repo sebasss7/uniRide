@@ -14,6 +14,7 @@ interface Props {
     visible: boolean;
     mode: "date" | "time";
     value: Date;
+    selectedDate?: Date | null;
     onChange: (date: Date) => void;
     onClose: () => void;
 }
@@ -23,6 +24,7 @@ export default function DatePickerModal({
     mode,
     value,
     onChange,
+    selectedDate,
     onClose,
 }: Props) {
     const [tempDate, setTempDate] = useState(value);
@@ -35,32 +37,31 @@ export default function DatePickerModal({
 
     const isValidDateTime = (date: Date) => {
         const now = new Date();
-
         if (mode === "date") {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-
             const selected = new Date(date);
             selected.setHours(0, 0, 0, 0);
-
             return selected >= today;
         }
-
         if (mode === "time") {
-            const isToday =
-                date.toDateString() === now.toDateString();
+            const selectedDay = selectedDate ? new Date(selectedDate) : new Date();
 
-            if (!isToday) return true;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            const selectedMinutes =
-                date.getHours() * 60 + date.getMinutes();
+            const dayToValidate = new Date(selectedDay);
+            dayToValidate.setHours(0, 0, 0, 0);
 
-            const currentMinutes =
-                now.getHours() * 60 + now.getMinutes();
+            if (dayToValidate > today) {
+                return true;
+            }
+
+            const selectedMinutes = date.getHours() * 60 + date.getMinutes();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
             return selectedMinutes >= currentMinutes;
         }
-
         return true;
     };
 
