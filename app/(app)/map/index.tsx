@@ -4,9 +4,10 @@ import { ActivityIndicator, View } from "react-native";
 
 import CustomMap from "@/components/maps/customMap";
 import TripModal from "@/components/maps/modalMap";
-import { geocodeAddress, reverseGeocode } from "@/services/googleMaps";
+import { reverseGeocode } from "@/services/googleMaps";
 import { useLocationStore } from "@/store/useLocationStore";
 import { LatLng } from "@/types/latLng";
+import { Place } from "@/types/place";
 
 import { getPlaceDetails } from "@/services/googleMaps";
 import { router } from "expo-router";
@@ -19,30 +20,28 @@ const MapScreen = () => {
   type ModalStep = "form" | "selectingOrigin" | "selectingDestination";
 
   const [tempLocation, setTempLocation] = useState<LatLng | null>(null);
+  const [tempPlace, setTempPlace] = useState<Place | null>(null);
+  const [isResolvingLocation, setIsResolvingLocation] = useState(false);
 
-  const handleSelectLocation = (coords: LatLng) => {
+  const handleSelectLocation = async (coords: LatLng) => {
     setTempLocation(coords);
+    setTempPlace(null);
+    setIsResolvingLocation(true);
+
+    const place = await reverseGeocode(coords);
+
+    setTempPlace(place);
+    setIsResolvingLocation(false);
   };
 
-  const handleConfirmLocation = async () => {
-    const handleSearchDestination = async (text: string) => {
-      const place = await geocodeAddress(text);
-
-      if (!place) return;
-
-      setDestino(place);
-    };
-
-    if (!tempLocation) return;
-
-    const place = await reverseGeocode(tempLocation);
-
-    if (!place) return;
+  const handleConfirmLocation = () => {
+    if (!tempLocation || !tempPlace) return;
 
     if (step === "selectingOrigin") {
-      await updateOriginFromCoords(tempLocation);
+      setOrigen(tempPlace);
 
       setTempLocation(null);
+      setTempPlace(null);
 
       setStep("selectingDestination");
 
@@ -50,12 +49,25 @@ const MapScreen = () => {
     }
 
     if (step === "selectingDestination") {
-      await updateDestinationFromCoords(tempLocation);
+      setDestino(tempPlace);
 
       setTempLocation(null);
+      setTempPlace(null);
 
       setStep("form");
     }
+  };
+
+  const handleSelectOriginStep = () => {
+    setTempLocation(null);
+    setTempPlace(null);
+    setStep("selectingOrigin");
+  };
+
+  const handleSelectDestinationStep = () => {
+    setTempLocation(null);
+    setTempPlace(null);
+    setStep("selectingDestination");
   };
 
   const handleSearchOrigin = async (placeId: string) => {
@@ -124,8 +136,10 @@ const MapScreen = () => {
         destino={destino}
         step={step}
         tempLocation={tempLocation}
-        onSelectOrigin={() => setStep("selectingOrigin")}
-        onSelectDestination={() => setStep("selectingDestination")}
+        tempPlace={tempPlace}
+        isResolvingLocation={isResolvingLocation}
+        onSelectOrigin={handleSelectOriginStep}
+        onSelectDestination={handleSelectDestinationStep}
         onConfirmLocation={handleConfirmLocation}
         onSearchOrigin={handleSearchOrigin}
         onSearchDestination={handleSearchDestination}

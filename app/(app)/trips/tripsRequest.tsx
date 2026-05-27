@@ -1,15 +1,17 @@
 import { usersMock } from "@/mock/users";
+import { useAuthStore } from "@/store/authStore";
 import { useViajesStore } from "@/store/realTripStore";
 import { useSolicitudesStore } from "@/store/tripRequestStore";
+import { useChatStore } from "@/store/useChatStore";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import {
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function TripRequestsScreen() {
@@ -19,6 +21,10 @@ export default function TripRequestsScreen() {
   const viaje = useViajesStore((state) =>
     state.viajes.find((item) => String(item.id) === String(id)),
   );
+
+  const usuario = useAuthStore((state) => state.usuario);
+
+  const getOrCreateChat = useChatStore((state) => state.getOrCreateChat);
 
   const reducirAsientos = useViajesStore((state) => state.reducirAsientos);
 
@@ -54,6 +60,11 @@ export default function TripRequestsScreen() {
 
     if (!solicitud) return;
 
+    if (!usuario) {
+      Alert.alert("Error", "No se encontró la sesión del conductor.");
+      return;
+    }
+
     if (solicitud.estado !== "en espera") {
       Alert.alert("Solicitud ya procesada", "Esta solicitud ya fue atendida.");
       return;
@@ -70,12 +81,33 @@ export default function TripRequestsScreen() {
     aprobarSolicitud(solicitud.id);
     reducirAsientos(viaje.id, solicitud.asientos_reservados);
 
-    Alert.alert("Solicitud aprobada", "El pasajero ya forma parte del viaje.");
-  };
+    Alert.alert(
+      "Solicitud aprobada",
+      "El pasajero ya forma parte del viaje. ¿Deseas enviarle un mensaje?",
+      [
+        {
+          text: "Ahora no",
+          style: "cancel",
+        },
+        {
+          text: "Ir al chat",
+          onPress: () => {
+            const chat = getOrCreateChat(
+              usuario.id,
+              solicitud.pasajero_id,
+              viaje.id,
+            );
 
-  const handleRechazar = (solicitudId: string) => {
-    denegarSolicitud(solicitudId);
-    Alert.alert("Solicitud rechazada", "La solicitud fue denegada.");
+            router.push({
+              pathname: "/(app)/chats/[id]",
+              params: {
+                id: chat.id,
+              },
+            });
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -116,6 +148,13 @@ export default function TripRequestsScreen() {
 
               <Text style={styles.infoText}>Total: ${item.total}</Text>
 
+              {item.mensaje && (
+                <View style={styles.messageBox}>
+                  <Text style={styles.messageTitle}>Mensaje del pasajero</Text>
+                  <Text style={styles.messageText}>{item.mensaje}</Text>
+                </View>
+              )}
+
               <Text
                 style={[
                   styles.status,
@@ -130,7 +169,7 @@ export default function TripRequestsScreen() {
                 <View style={styles.buttonsRow}>
                   <TouchableOpacity
                     style={styles.btnReject}
-                    onPress={() => handleRechazar(item.id)}
+                    onPress={() => denegarSolicitud(item.id)}
                     activeOpacity={0.85}
                   >
                     <Text style={styles.btnRejectText}>Rechazar</Text>
@@ -299,5 +338,25 @@ const styles = StyleSheet.create({
     color: "#1a3a5c",
     fontWeight: "800",
     fontSize: 15,
+  },
+  messageBox: {
+    backgroundColor: "#dceef9",
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 12,
+  },
+
+  messageTitle: {
+    fontSize: 12,
+    color: "#6f8fa5",
+    fontWeight: "800",
+    marginBottom: 5,
+  },
+
+  messageText: {
+    fontSize: 14,
+    color: "#1a3a5c",
+    fontWeight: "600",
+    lineHeight: 20,
   },
 });

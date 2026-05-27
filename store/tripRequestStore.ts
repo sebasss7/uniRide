@@ -34,6 +34,7 @@ export const useSolicitudesStore = create<SolicitudesState>((set, get) => ({
       forma_pago: data.forma_pago,
       asientos_reservados: data.asientos_reservados,
       total: data.total,
+      mensaje: data.mensaje?.trim() || undefined,
       estado: "en espera",
     };
 

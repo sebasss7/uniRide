@@ -56,7 +56,7 @@ export const tripsMock: Viaje[] = [
       latitude: 20.704419440227355,
       longitude: -100.44388253285416,
     },
-    fecha: "2026-05-19",
+    fecha: "2026-05-26",
     hora_salida: "22:00",
     asientos_disponibles: 3,
     precio: 30,

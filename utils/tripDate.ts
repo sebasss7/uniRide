@@ -24,15 +24,7 @@ export const isTripPast = (viaje: Viaje) => {
 };
 
 export const getEffectiveTripStatus = (viaje: Viaje): Viaje["estado_viaje"] => {
-  if (viaje.estado_viaje === "cancelado") return "cancelado";
-  if (viaje.estado_viaje === "completado") return "completado";
-  if (viaje.estado_viaje === "en curso") return "en curso";
-
-  if (viaje.estado_viaje === "disponible" && isTripPast(viaje)) {
-    return "completado";
-  }
-
-  return "disponible";
+  return viaje.estado_viaje;
 };
 
 export const getTripStatusLabel = (viaje: Viaje) => {
