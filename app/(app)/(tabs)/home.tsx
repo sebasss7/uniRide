@@ -47,8 +47,8 @@ const getDistanceInMeters = (pointA: Coordinate, pointB: Coordinate) => {
   const result =
     Math.sin(latitudeDistance / 2) ** 2 +
     Math.cos(latitudeA) *
-      Math.cos(latitudeB) *
-      Math.sin(longitudeDistance / 2) ** 2;
+    Math.cos(latitudeB) *
+    Math.sin(longitudeDistance / 2) ** 2;
 
   return 2 * earthRadius * Math.atan2(Math.sqrt(result), Math.sqrt(1 - result));
 };
@@ -85,12 +85,12 @@ export default function homeScreen() {
       const coincideOrigen =
         !busquedaAplicada.origen ||
         getDistanceInMeters(busquedaAplicada.origen, viaje.origenCoords) <=
-          RADIO_BUSQUEDA_METROS;
+        RADIO_BUSQUEDA_METROS;
 
       const coincideDestino =
         !busquedaAplicada.destino ||
         getDistanceInMeters(busquedaAplicada.destino, viaje.destinoCoords) <=
-          RADIO_BUSQUEDA_METROS;
+        RADIO_BUSQUEDA_METROS;
 
       const coincideFecha =
         !busquedaAplicada.fecha || viaje.fecha === busquedaAplicada.fecha;
@@ -177,6 +177,16 @@ export default function homeScreen() {
     fecha: string | null;
     hora: string | null;
   }
+
+  const getTimePickerValue = () => {
+    const base = fecha ? new Date(fecha) : new Date();
+
+    if (hora) {
+      base.setHours(hora.getHours(), hora.getMinutes(), 0, 0);
+    }
+
+    return base;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -314,6 +324,7 @@ export default function homeScreen() {
         value={fecha || new Date()}
         onChange={(selectedDate) => {
           setFecha(selectedDate);
+          setHora(null);
         }}
         onClose={() => setShowDatePicker(false)}
       />
@@ -321,18 +332,9 @@ export default function homeScreen() {
       <DatePickerModal
         visible={showTimePicker}
         mode="time"
-        value={hora || new Date()}
+        value={getTimePickerValue()}
+        selectedDate={fecha}
         onChange={(selectedDate) => {
-          const now = new Date();
-
-          if (fecha) {
-            const mismaFecha = fecha.toDateString() === now.toDateString();
-
-            if (mismaFecha && selectedDate < now) {
-              return;
-            }
-          }
-
           setHora(selectedDate);
         }}
         onClose={() => setShowTimePicker(false)}
